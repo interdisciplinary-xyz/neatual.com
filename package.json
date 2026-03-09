@@ -1,20 +1,27 @@
 {
+  "name": "neatual.com",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "vuepress dev src",
-    "build": "vuepress build src",
-    "deploy": "yarn build && git add . && git commit -m 'deploy' && git push",
-    "lint": "./node_modules/.bin/eslint './src/.vuepress/**/*.{js,vue}'",
-    "lint:fix": "./node_modules/.bin/eslint './src/.vuepress/**/*.{js,vue}' --fix"
+    "dev": "node ./server.js",
+    "build": "remix vite:build",
+    "start": "cross-env NODE_ENV=production node ./server.js",
+    "lint": "eslint ./app"
   },
   "dependencies": {
-    "@kawarimidoll/vuepress-plugin-tailwind": "^2.0.0",
-    "vue-js-modal": "^2.0.0-rc.6",
-    "vuepress": "^1.8.2",
-    "vuex": "^3.6.2"
+    "@remix-run/express": "^2.15.0",
+    "@remix-run/node": "^2.15.0",
+    "@remix-run/react": "^2.15.0",
+    "isbot": "^4.4.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@goy/vuepress-plugin-svg-icons": "^4.2.3",
-    "eslint": "^7.25.0",
-    "eslint-plugin-vue": "^7.9.0"
+    "@remix-run/dev": "^2.15.0",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.57.0",
+    "express": "^4.21.0",
+    "tailwindcss": "^3.4.15",
+    "vite": "^5.4.11"
   }
 }

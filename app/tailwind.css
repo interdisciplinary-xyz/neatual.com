@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-size: 10px;
+  background: #ededed;
+}
+
+body {
+  display: flex;
+  align-items: stretch;
+  font-family: "Roboto", sans-serif;
+  color: black;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem 1.5rem;
+  background: black;
+  color: white;
+  border-radius: 0.25rem;
+  font-weight: 700;
+}
+.skip-link:focus {
+  left: 1rem;
+  top: 1rem;
+}
