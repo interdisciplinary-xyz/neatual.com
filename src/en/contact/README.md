@@ -1,3 +1,0 @@
-<Header/>
-<Page-Contact/>
-<Footer/>
