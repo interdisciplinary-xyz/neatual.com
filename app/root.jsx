@@ -98,22 +98,15 @@ function getAlternatePaths(pathname) {
   ];
 }
 
-export const links = ({ location }) => {
-  const pathname = location?.pathname || "/";
-  const { canonical } = getPageMeta(pathname);
-  const alternates = getAlternatePaths(pathname);
-  return [
-    { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-    { rel: "canonical", href: canonical },
-    ...alternates,
-    { rel: "preconnect", href: "https://fonts.googleapis.com" },
-    { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-    {
-      rel: "stylesheet",
-      href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto:wght@400;700;900&display=swap",
-    },
-  ];
-};
+export const links = () => [
+  { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+  { rel: "preconnect", href: "https://fonts.googleapis.com" },
+  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+  {
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto:wght@400;700;900&display=swap",
+  },
+];
 
 export async function loader({ request }) {
   const url = new URL(request.url);
@@ -124,11 +117,18 @@ export default function App() {
   const { pathname } = useLoaderData() ?? { pathname: "/" };
   const locale = getLocaleFromPath(pathname);
   const htmlLang = locale === "pl" ? "pl" : locale === "en" ? "en" : "de";
+  const { canonical } = getPageMeta(pathname);
+  const alternates = getAlternatePaths(pathname);
+
   return (
     <html lang={htmlLang} className="font-sans">
       <head>
         <Meta />
         <Links />
+        <link rel="canonical" href={canonical} />
+        {alternates.map((alt) => (
+          <link key={alt.hreflang} rel="alternate" hrefLang={alt.hreflang} href={alt.href} />
+        ))}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
