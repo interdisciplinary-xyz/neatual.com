@@ -10,4 +10,12 @@ export const structure = (S) =>
         .child(S.document().schemaType("siteSettings").documentId("siteSettings")),
       S.divider(),
       S.documentTypeListItem("page").title("Pages"),
+      S.listItem()
+        .title("Products")
+        .schemaType("product")
+        .child(
+          S.documentTypeList("product")
+            .title("Products")
+            .defaultOrdering([{ field: "order", direction: "asc" }])
+        ),
     ]);

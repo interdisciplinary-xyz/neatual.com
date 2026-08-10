@@ -15,7 +15,13 @@ import { createClient } from "@sanity/client";
 import { LOCALES } from "../app/lib/locales.js";
 import { LOCALE_CODES, PAGE_KEYS, HREFLANG_URLS } from "../app/lib/seo.js";
 import { htmlToBlocks, tidy } from "../app/lib/portableText.js";
-import { HOME_SR_HEADING, A11Y_LABELS, PAGE_META } from "../app/lib/inlineCopy.js";
+import {
+  HOME_SR_HEADING,
+  A11Y_LABELS,
+  PAGE_META,
+  PRODUCT_COPY,
+  fillTemplate,
+} from "../app/lib/inlineCopy.js";
 
 const dryRun = process.argv.includes("--dry-run");
 const asNdjson = process.argv.includes("--ndjson");
@@ -103,11 +109,32 @@ function buildSiteSettings() {
       expand: A11Y_LABELS.expand,
       langNav: A11Y_LABELS.langNav,
       mainNav: A11Y_LABELS.mainNav,
+      selectProduct: A11Y_LABELS.selectProduct,
+      selectPhoto: A11Y_LABELS.selectPhoto,
+      photoAlt: A11Y_LABELS.photoAlt,
     },
   };
 }
 
-const documents = [...PAGE_KEYS.map(buildPage), buildSiteSettings()];
+function buildProduct(n) {
+  return {
+    _id: `product-${n}`,
+    _type: "product",
+    order: n,
+    imageBase: `produkt-${n}`,
+    photoCount: PRODUCT_COPY.photoCount,
+    name: byLocale((_, code) => fillTemplate(PRODUCT_COPY.name[code], { n })),
+    price: byLocale((_, code) => PRODUCT_COPY.price[code]),
+    descriptionLines: byLocale((_, code) => PRODUCT_COPY.descriptionLines[code]),
+    alt: byLocale((_, code) => fillTemplate(PRODUCT_COPY.alt[code], { n })),
+  };
+}
+
+const documents = [
+  ...PAGE_KEYS.map(buildPage),
+  ...PRODUCT_COPY.numbers.map(buildProduct),
+  buildSiteSettings(),
+];
 
 if (asNdjson) {
   // One document per line, for `sanity dataset import`, which authenticates

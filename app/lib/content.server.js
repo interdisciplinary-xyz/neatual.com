@@ -2,12 +2,21 @@ import { sanityClient, isSanityConfigured, localized } from "./sanity.js";
 import { LOCALES } from "./locales.js";
 import { HREFLANG_URLS, LOCALE_CODES, PAGE_KEYS, DEFAULT_LOCALE } from "./seo.js";
 import { htmlToBlocks, tidy } from "./portableText.js";
-import { HOME_SR_HEADING, A11Y_LABELS, PAGE_META } from "./inlineCopy.js";
+import {
+  HOME_SR_HEADING,
+  A11Y_LABELS,
+  PAGE_META,
+  PRODUCT_COPY,
+  fillTemplate,
+} from "./inlineCopy.js";
 
 const CONTENT_QUERY = `{
   "pages": *[_type == "page"]{
     pageKey, path, navLabel, srHeading, metaTitle, metaDescription,
     heading, shortDescription, body
+  },
+  "products": *[_type == "product"] | order(order asc){
+    order, imageBase, photoCount, name, price, descriptionLines, alt
   },
   "settings": *[_type == "siteSettings"][0]{
     phone, email, address, messageCta, callCta, a11y
@@ -51,10 +60,21 @@ function fromLocales(locale) {
     })
   );
 
+  const products = PRODUCT_COPY.numbers.map((n) => ({
+    order: n,
+    imageBase: `produkt-${n}`,
+    photoCount: PRODUCT_COPY.photoCount,
+    name: fillTemplate(PRODUCT_COPY.name[locale], { n }),
+    price: PRODUCT_COPY.price[locale],
+    descriptionLines: PRODUCT_COPY.descriptionLines[locale],
+    alt: fillTemplate(PRODUCT_COPY.alt[locale], { n }),
+  }));
+
   return {
     source: "locales",
     locale,
     pages,
+    products,
     paths: HREFLANG_URLS,
     settings: {
       phone: config.contact.phone,
@@ -65,6 +85,9 @@ function fromLocales(locale) {
       a11y: {
         close: config.a11y.close,
         homeLink: config.a11y.homeLink,
+        selectProduct: A11Y_LABELS.selectProduct[locale],
+        selectPhoto: A11Y_LABELS.selectPhoto[locale],
+        photoAlt: A11Y_LABELS.photoAlt[locale],
         call: A11Y_LABELS.call[locale],
         email: A11Y_LABELS.email[locale],
         expand: A11Y_LABELS.expand[locale],
@@ -102,11 +125,22 @@ function fromSanity(data, locale) {
     ])
   );
 
+  const products = (data.products ?? []).map((p) => ({
+    order: p.order,
+    imageBase: p.imageBase,
+    photoCount: p.photoCount ?? 4,
+    name: localized(p.name, locale),
+    price: localized(p.price, locale),
+    descriptionLines: localized(p.descriptionLines, locale) ?? [],
+    alt: localized(p.alt, locale),
+  }));
+
   const s = data.settings;
   return {
     source: "sanity",
     locale,
     pages,
+    products,
     paths,
     settings: {
       phone: s.phone,
@@ -136,8 +170,10 @@ export async function getContent(locale) {
     const missing = PAGE_KEYS.filter(
       (key) => !data?.pages?.some((page) => page.pageKey === key)
     );
-    if (missing.length || !data?.settings) {
-      warnOnce(`incomplete CMS response (missing: ${missing.join(", ") || "siteSettings"})`);
+    if (missing.length || !data?.settings || !data?.products?.length) {
+      warnOnce(
+        `incomplete CMS response (missing: ${missing.join(", ") || (!data?.settings ? "siteSettings" : "products")})`
+      );
       return fromLocales(locale);
     }
     return fromSanity(data, locale);

@@ -31,8 +31,8 @@ export function ModalSingleProduct({
   if (!isOpen || !product) return null;
 
   const currentPhoto =
-    product.photos[currentPhotoIndex] || product.photos[0];
-  const photoBase = currentPhoto?.base || product.thumbnailBase;
+    product?.photos?.[currentPhotoIndex] || product?.photos?.[0];
+  const photoBase = currentPhoto?.base || product?.thumbnailBase;
 
   return (
     <div
@@ -67,7 +67,7 @@ export function ModalSingleProduct({
           <figure className="aspect-square overflow-hidden rounded-2xl mb-8 shrink-0">
             <ProductImage
               base={photoBase}
-              alt={product.alt || product.name}
+              alt={product?.alt || product?.name}
               width={400}
               height={400}
               sizes="90vw"
@@ -78,10 +78,10 @@ export function ModalSingleProduct({
             <div className="flex justify-between mb-4">
               <div>
                 <h2 id="modal-product-heading" className="uppercase font-bold">
-                  {product.name}
+                  {product?.name}
                 </h2>
                 <p className="text-14 text-content">
-                  {product.descriptionLines.map((line) => (
+                  {(product?.descriptionLines ?? []).map((line) => (
                     <span key={line} className="block">
                       {line}
                     </span>
@@ -89,11 +89,11 @@ export function ModalSingleProduct({
                 </p>
               </div>
               <div>
-                <p className="font-bold">{product.price}</p>
+                <p className="font-bold">{product?.price}</p>
               </div>
             </div>
             <ul className="flex gap-2 flex-wrap -mt-12">
-              {product.photos.map((image, index) => (
+              {(product?.photos ?? []).map((image, index) => (
                 <li key={index} className="w-20 aspect-[4/4.23] shrink-0">
                   <button
                     type="button"

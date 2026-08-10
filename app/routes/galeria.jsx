@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "@remix-run/react";
-import { getProducts, getPhotoAlt } from "../lib/products";
-import { LOCALES, getLocaleFromPath } from "../lib/locales";
+import { getLocaleFromPath } from "../lib/locales";
+import { fillTemplate } from "../lib/inlineCopy";
 import { useContent } from "../lib/useContent";
 import { ModalSingleProduct } from "../components/ModalSingleProduct";
 import { ProductImage } from "../components/ProductImage";
@@ -37,16 +37,27 @@ export default function GalleryPage() {
 
   const content = useContent();
   const page = content?.pages.gallery;
-  // Two sources on purpose. srHeading and the close label are plain strings and
-  // come from the CMS; selectProduct/selectPhoto are *functions* taking a
-  // product name and a photo index, which no CMS field can express, so they
-  // stay in locales.js.
-  const a11y = LOCALES[locale].a11y;
-  const products = useMemo(() => getProducts(locale), [locale]);
+  const a11y = content?.settings.a11y;
+  // Photo paths are derived, not stored: the responsive variants are generated
+  // from art/gallery-originals by scripts/generate-gallery-images.mjs, so the
+  // CMS holds the folder name and the count rather than four URLs per product.
+  const products = useMemo(
+    () =>
+      (content?.products ?? []).map((p) => ({
+        ...p,
+        thumbnailBase: `/gallery/${p.imageBase}/${p.imageBase}-1`,
+        photos: Array.from({ length: p.photoCount }, (_, i) => ({
+          base: `/gallery/${p.imageBase}/${p.imageBase}-${i + 1}`,
+        })),
+      })),
+    [content]
+  );
   const currentProduct = products[currentProductIndex];
   const currentPhoto =
-    currentProduct.photos[currentPhotoIndex] || currentProduct.photos[0];
-  const photoBase = currentPhoto?.base || currentProduct.thumbnailBase;
+    currentProduct?.photos[currentPhotoIndex] || currentProduct?.photos[0];
+  const photoBase = currentPhoto?.base || currentProduct?.thumbnailBase;
+  const photoAltFor = (index) =>
+    fillTemplate(a11y?.photoAlt, { name: currentProduct?.name, n: index });
 
   const openProduct = (index) => {
     setCurrentProductIndex(index);
@@ -99,7 +110,7 @@ export default function GalleryPage() {
                 <button
                   type="button"
                   onClick={() => openProduct(index)}
-                  aria-label={a11y.selectProduct(item.name)}
+                  aria-label={fillTemplate(a11y?.selectProduct, { name: item.name })}
                   aria-pressed={currentProductIndex === index}
                   className="absolute inset-0 w-full h-full cursor-pointer rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 />
@@ -107,6 +118,13 @@ export default function GalleryPage() {
             ))}
           </ul>
         </div>
+        {/*
+          Guarded because `products` now comes from the CMS. It is never empty
+          in practice — the adapter falls back to the bundled copy rather than
+          returning an empty list — but an unguarded `currentProduct.alt` would
+          turn any such gap into a render crash rather than a missing panel.
+        */}
+        {currentProduct && (
         <div className="hidden desktop:flex w-2/3 px-36">
           <div className="w-1/2">
             <figure className="aspect-square overflow-hidden rounded-2xl mb-8">
@@ -151,13 +169,13 @@ export default function GalleryPage() {
                     <button
                       type="button"
                       onClick={() => setCurrentPhotoIndex(index)}
-                      aria-label={a11y.selectPhoto(index + 1)}
+                      aria-label={fillTemplate(a11y?.selectPhoto, { n: index + 1 })}
                       aria-pressed={currentPhotoIndex === index}
                       className="block w-full h-full overflow-hidden rounded-xl cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                     >
                       <ProductImage
                         base={image.base}
-                        alt={getPhotoAlt(locale, currentProduct.name, index + 1)}
+                        alt={photoAltFor(index + 1)}
                         width={80}
                         height={80}
                         sizes={STRIP_SIZES}
@@ -170,14 +188,15 @@ export default function GalleryPage() {
             </div>
           </div>
         </div>
+        )}
       </div>
       <ModalSingleProduct
         product={currentProduct}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        closeLabel={content?.settings.a11y.close}
-        selectPhotoLabel={a11y.selectPhoto}
-        photoAlt={(i) => getPhotoAlt(locale, currentProduct.name, i)}
+        closeLabel={a11y?.close}
+        selectPhotoLabel={(n) => fillTemplate(a11y?.selectPhoto, { n })}
+        photoAlt={photoAltFor}
       />
     </article>
   );

@@ -31,6 +31,21 @@ export const siteSettings = {
         localizedField({ name: "expand", title: "Expand full description" }),
         localizedField({ name: "langNav", title: "Language selector" }),
         localizedField({ name: "mainNav", title: "Main navigation" }),
+        localizedField({
+          name: "selectProduct",
+          title: "Select a product tile",
+          description: "Use {name} where the product name should appear.",
+        }),
+        localizedField({
+          name: "selectPhoto",
+          title: "Show a specific photo",
+          description: "Use {n} where the photo number should appear.",
+        }),
+        localizedField({
+          name: "photoAlt",
+          title: "Product photo alt text",
+          description: "Use {name} for the product and {n} for the photo number.",
+        }),
       ],
     },
   ],
