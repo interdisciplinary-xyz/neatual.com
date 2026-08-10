@@ -73,6 +73,13 @@ components.
 > | `/`        | 85 → **98**  | 95 → **100**  | 3.6 s → **1.8 s**  | 382 → **192 KiB**        |
 > | `/galeria` | 70 → **92**  | 91 → **100**  | 44.1 s → **2.7 s** | 10,175 → **199 KiB**     |
 >
+> Fixed since (§5 enforcement, second pass `1384e6b`…`7fba9f3`): a Vitest
+> suite of 22 tests pinning the sitemap, the image ladder, ProductImage and the
+> modal focus behaviour; Prettier with a `format:check` gate; a dependency gate
+> against a recorded advisory baseline; TruffleHog secret scanning; and
+> Lighthouse budgets over three URLs, median-aggregated. §5's table below
+> describes the state at audit time and is superseded by those.
+>
 > Fixed: §2.4 the `<main>` collapse (tiles 4×4 → 115×115 px, 0/9 → 4/9 images
 > visible on mobile) · §2.1 images (23.2 MB of masters → a 6.91 MB WebP ladder;
 > `/galeria` mobile payload 9,872 → 122 KiB) and the dead lazy-loading ternary ·
@@ -96,6 +103,31 @@ components.
 > the third-party request), and `uses-long-cache-ttl` on the gallery
 > derivatives, which sit at a 1 h TTL because their filenames are not
 > content-hashed.
+
+> **Correction — this audit under-measured `/kontakt`.** Lighthouse was run on
+> `/` and `/galeria` only, on the reasoning that `/kontakt` shares their
+> chrome. It does not share their content, and widening the new CI gate to all
+> three page types immediately surfaced two failures that were present at the
+> audited commit and are absent from every section below:
+>
+> - **`label-content-name-mismatch` ❌** — `kontakt.jsx:24,32` give the phone and
+>   email links `aria-label="Zadzwoń"` / `"Napisz e-mail"` while their visible
+>   text is the number and the address. The accessible name does not contain
+>   the visible label: WCAG 2.5.3, the same defect §3.4 records for the logo
+>   link, on the site's primary conversion path. Voice control cannot activate
+>   either link by reading it aloud.
+> - **`cumulative-layout-shift` 0.177 ❌** — against a 0.1 budget, from the
+>   `DisplayMedia` post-hydration content swap. §3.7 recorded "measured CLS is
+>   **0** on both pages, so the swap is not currently shifting layout" — that
+>   conclusion was drawn from the two pages where it happens to be true, and
+>   generalised. On `/kontakt` the swap moves the whole contact block.
+>
+> Recorded here rather than folded into §3 because the point is not just the
+> two defects: it is that this report criticised a sibling repo for a
+> homepage-only Lighthouse gate and then measured two of three page types
+> itself. Both remain unfixed — they live in files the concurrent CMS session
+> holds — and both are now asserted by `lighthouserc.cjs`, so CI reports them
+> until they are.
 
 **Legend:** ✅ verified against served output · ⚠️ works, with a caveat · ❌ failing ·
 📄 source-verified only
