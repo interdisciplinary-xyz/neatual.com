@@ -32,6 +32,31 @@ for forms, cookies, storage, env access and third-party origins.
 > a major version Remix 2.17.5 cannot use. This is a framework-lifecycle
 > decision, not a `pnpm update`.
 
+> **Remediation, 10 August 2026 (same day), `c41cc7e`…`6737b92`.** Findings
+> below describe the state at audit time. Fixed since:
+>
+> - **P1** — `express` and `cross-env` moved to `dependencies`, and CI now
+>   prunes to a production install and boots the server the way a host does,
+>   which is the only check that would have caught this.
+> - **P2** — all six security headers now sent (`nosniff`, `Referrer-Policy`,
+>   `X-Frame-Options`, `Permissions-Policy`, CSP, HSTS), verified against the
+>   built server with zero CSP violations and hydration intact. HSTS is gated on
+>   a genuinely secure request: Chrome treats localhost as trustworthy, so an
+>   unconditional header pinned localhost to https for two years in the
+>   developer's browser.
+> - **P3** — `X-Powered-By` disabled; `deploy.sh` no longer pretends to deploy;
+>   four of the five future-flag warnings cleared; two of the eight
+>   `dangerouslySetInnerHTML` sites removed by replacing the product
+>   description HTML string with an array of lines.
+>
+> **Not fixed.** The four advisories in §1 stand — they are patched only in
+> React Router 7, which Remix 2 cannot use, so they remain a framework-lifecycle
+> decision. `pnpm audit` still runs in no CI job. The remaining six
+> `dangerouslySetInnerHTML` sites are now partly the CMS integration's concern
+> rather than a hardcoded-module one, and should be re-assessed against it —
+> the reason they were safe (no user or network input) stops holding the moment
+> content comes from Sanity.
+
 **Legend:** ✅ verified · ⚠️ works, with a caveat · ❌ failing · 📄 source-verified only
 
 ---

@@ -62,6 +62,41 @@ components.
 > therefore still describes the current tree; only `root.jsx` line numbers shift
 > by a few lines after the extraction.
 
+> **Remediation, 10 August 2026 (same day), `c9f2ebd`…`6737b92`.** Findings
+> below describe the state **at audit time**; most have since been fixed. That
+> departs from the report-only convention and is recorded here rather than by
+> rewriting the findings, so the next pass can diff against the original
+> numbers. Re-measured after the fixes, on the same production build:
+>
+> | Page       | Perf       | A11y        | LCP              | Transferred            |
+> | ---------- | ---------- | ----------- | ---------------- | ---------------------- |
+> | `/`        | 85 → **98**  | 95 → **100**  | 3.6 s → **1.8 s**  | 382 → **192 KiB**        |
+> | `/galeria` | 70 → **92**  | 91 → **100**  | 44.1 s → **2.7 s** | 10,175 → **199 KiB**     |
+>
+> Fixed: §2.4 the `<main>` collapse (tiles 4×4 → 115×115 px, 0/9 → 4/9 images
+> visible on mobile) · §2.1 images (23.2 MB of masters → a 6.91 MB WebP ladder;
+> `/galeria` mobile payload 9,872 → 122 KiB) and the dead lazy-loading ternary ·
+> §2.2 compression, immutable asset caching, `X-Powered-By` · §1.3 the developer
+> 404 · §1.4 Polish copy on EN/DE and the `XX PLN` placeholder · §1.2 headings on
+> all 9 routes · §1.1 `og:image`, `og:site_name`, `og:locale` format,
+> `og:locale:alternate` · §1.6 JSON-LD `@graph` with `Organization`+`LocalBusiness`,
+> per-page types and `WebSite` · §3.3 language-switcher target size (17×12 →
+> 24×24 px) and the root font-size · §3.4 the `<li role="button">` pair and the
+> Label-in-Name failure · §3.5 keyboard-reachable photo strips, modal focus trap
+> and focus restore · §3.2 the dead `gray` token · §5 ESLint react/a11y rules and
+> a CI pipeline that boots the built server.
+>
+> **Not fixed, deliberately.** §1.1's six short descriptions and §3.7's
+> JS-gated device detection were dropped mid-remediation: a Sanity CMS
+> integration landed concurrently and now owns page copy (`metaTitle` /
+> `metaDescription`) and is rewriting the route components that consume
+> `DisplayMedia`. Both should be re-audited against the CMS structure rather
+> than fixed twice. Residual, unaddressed: `render-blocking-resources` (the
+> Google Fonts stylesheet — self-hosting would also drop the CSP exception and
+> the third-party request), and `uses-long-cache-ttl` on the gallery
+> derivatives, which sit at a 1 h TTL because their filenames are not
+> content-hashed.
+
 **Legend:** ✅ verified against served output · ⚠️ works, with a caveat · ❌ failing ·
 📄 source-verified only
 
