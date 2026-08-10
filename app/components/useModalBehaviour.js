@@ -74,9 +74,13 @@ export function useModalBehaviour(isOpen, onClose) {
       const container = containerRef.current;
       if (!container) return;
 
-      const focusable = Array.from(
-        container.querySelectorAll(FOCUSABLE)
-      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
+      // No visibility filter. The obvious one — `el.offsetParent !== null` —
+      // depends on layout, which jsdom does not do, so under test the
+      // focusable set collapsed to whichever element already had focus and the
+      // shift+Tab wrap silently became a no-op. The dialog only renders while
+      // open and everything inside it is visible by construction, so filtering
+      // bought nothing and cost testability.
+      const focusable = Array.from(container.querySelectorAll(FOCUSABLE));
       if (focusable.length === 0) return;
 
       const first = focusable[0];

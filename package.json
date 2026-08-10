@@ -19,7 +19,9 @@
     "seed:sanity:import": "node --env-file-if-exists=.env scripts/seed-sanity.mjs --ndjson > .sanity-seed.ndjson && sanity dataset import .sanity-seed.ndjson production --replace && rm -f .sanity-seed.ndjson",
     "start": "cross-env NODE_ENV=production node --env-file-if-exists=.env ./server.js",
     "start:dev": "portless run --lan -- node --env-file-if-exists=.env ./server.js",
-    "start:dev:raw": "node --env-file-if-exists=.env ./server.js"
+    "start:dev:raw": "node --env-file-if-exists=.env ./server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@portabletext/react": "^6.2.0",
@@ -42,14 +44,22 @@
   "devDependencies": {
     "@remix-run/dev": "^2.15.0",
     "@sanity/vision": "^4.22.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.3",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^8.57.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
     "sanity": "^4.22.0",
     "sharp": "^0.35.3",
     "styled-components": "^6.5.1",
     "tailwindcss": "^3.4.15",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^2.1.9",
+    "vitest-axe": "^0.1.0"
   }
 }
