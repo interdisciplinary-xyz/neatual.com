@@ -5,11 +5,15 @@
   "packageManager": "pnpm@10.22.0",
   "scripts": {
     "build": "remix vite:build",
-    "cache:clean": "rm -rf node_modules build .cache && echo 'Caches cleared. Run pnpm install to reinstall.'",
+    "cache:clean": "rm -rf node_modules build dist .cache .sanity && echo 'Caches cleared. Run pnpm install to reinstall.'",
     "dev": "pnpm start:dev",
     "lint": "eslint ./app",
     "lint:fix": "eslint ./app --fix",
     "reboot": "pnpm cache:clean && pnpm install && pnpm start:dev",
+    "sanity:build": "sanity build",
+    "sanity:deploy": "sanity deploy",
+    "sanity:dev": "sanity dev",
+    "seed:sanity": "node --env-file-if-exists=.env scripts/seed-sanity.mjs",
     "start": "cross-env NODE_ENV=production node ./server.js",
     "start:dev": "portless run --lan -- node ./server.js",
     "start:dev:raw": "node ./server.js"
@@ -18,6 +22,10 @@
     "@remix-run/express": "^2.15.0",
     "@remix-run/node": "^2.15.0",
     "@remix-run/react": "^2.15.0",
+    "@sanity/client": "^7.26.2",
+    "compression": "^1.8.1",
+    "cross-env": "^7.0.3",
+    "express": "^4.21.0",
     "isbot": "^4.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
@@ -29,9 +37,10 @@
   },
   "devDependencies": {
     "@remix-run/dev": "^2.15.0",
-    "cross-env": "^7.0.3",
+    "@sanity/vision": "^4.22.0",
     "eslint": "^8.57.0",
-    "express": "^4.21.0",
+    "sanity": "^4.22.0",
+    "styled-components": "^6.5.1",
     "tailwindcss": "^3.4.15",
     "vite": "^5.4.11"
   }
