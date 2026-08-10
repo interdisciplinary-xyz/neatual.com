@@ -176,6 +176,31 @@ export function fromSanity(data, locale) {
 }
 
 /**
+ * The accessibility labels are the one part of the payload whose absence is
+ * invisible. A missing page or product shows up immediately; a missing
+ * `a11y.close` renders an icon-only button with no accessible name, and a
+ * missing `a11y.photoAlt` renders `alt=""` on a content image. Nothing throws,
+ * nothing looks wrong, and the regression only surfaces in an audit.
+ *
+ * The key set is derived from the bundled copy rather than hardcoded, so it
+ * cannot drift from the contract the components are written against. The check
+ * runs on the *resolved* value, which also catches a label that exists in the
+ * CMS but has no translation for the locale being rendered.
+ */
+const REQUIRED_A11Y_KEYS = Object.keys(
+  fromLocales(DEFAULT_LOCALE).settings.a11y
+);
+
+// Exported for the spec: this is the guard whose failure mode is silence, so
+// it is the one worth testing directly rather than through getContent.
+export function missingA11yLabels(settings) {
+  return REQUIRED_A11Y_KEYS.filter((key) => {
+    const value = settings?.a11y?.[key];
+    return typeof value !== "string" || value.trim() === "";
+  });
+}
+
+/**
  * Single entry point for page content. Always resolves — never throws — so a
  * Sanity outage degrades to the bundled copy instead of taking the site down.
  */
@@ -196,7 +221,17 @@ export async function getContent(locale) {
       );
       return fromLocales(locale);
     }
-    return fromSanity(data, locale);
+
+    const content = fromSanity(data, locale);
+    const missingLabels = missingA11yLabels(content.settings);
+    if (missingLabels.length) {
+      warnOnce(
+        `CMS response is missing accessibility labels (${missingLabels.join(", ")})`
+      );
+      return fromLocales(locale);
+    }
+
+    return content;
   } catch (error) {
     warnOnce(`Sanity request failed: ${error.message}`);
     return fromLocales(locale);

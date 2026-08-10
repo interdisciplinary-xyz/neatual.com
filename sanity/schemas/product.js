@@ -32,7 +32,7 @@ export const product = {
       name: "price",
       title: "Price",
       description:
-        "These are made-to-order uniforms with no list price, so this is a quote prompt rather than a number.",
+        "Every installation is quoted individually, so this is a prompt to get in touch rather than a number. Do not invent a figure.",
     }),
     localizedField({
       name: "descriptionLines",
@@ -44,7 +44,8 @@ export const product = {
     localizedField({
       name: "alt",
       title: "Image alt text",
-      description: "Describes the garment for screen readers and image search.",
+      description:
+        "Describes the finished installation — the pattern and the room — for screen readers and image search. Claim only what the photograph shows; materials and dimensions are not known.",
       of: { type: "text", rows: 2 },
     }),
   ],

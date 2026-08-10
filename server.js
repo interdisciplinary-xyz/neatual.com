@@ -52,10 +52,14 @@ function securityHeaders(req, res, next) {
   // trustworthy origin, so sending this from a local production build can pin
   // *localhost* to https in the developer's browser for two years — which
   // breaks every other local project on the machine, and is not undone by
-  // removing the header. Behind a proxy (Vercel, Railway, nginx) the TLS
-  // terminates upstream, so trust the forwarded header there.
-  const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
-  if (isProduction && isSecure) {
+  // removing the header.
+  //
+  // `req.secure` alone, deliberately: it already accounts for
+  // `x-forwarded-proto`, but only from a hop Express has been told to trust
+  // (see the trust-proxy block below). Reading the raw header here instead
+  // would honour it from any direct client, which is what makes the check
+  // spoofable.
+  if (isProduction && req.secure) {
     res.setHeader(
       "Strict-Transport-Security",
       "max-age=63072000; includeSubDomains; preload"
@@ -67,9 +71,24 @@ function securityHeaders(req, res, next) {
 
 const app = express();
 
-// Vercel/Railway/nginx terminate TLS upstream; without this req.secure is
+// Vercel/Railway/nginx terminate TLS upstream, so without this `req.secure` is
 // always false and the HSTS check in securityHeaders cannot fire.
-app.set("trust proxy", true);
+//
+// NOT `true`, which trusts X-Forwarded-* from any client: a direct request
+// could then claim `x-forwarded-proto: https` and pull back an HSTS header —
+// the localhost-pinning hazard securityHeaders exists to avoid — and it would
+// also make req.ip attacker-controlled for anything added later that reads it.
+// Enabled only when a platform known to sit in front of us is detected, or
+// when a deployment opts in explicitly, and then for exactly one hop.
+const TRUST_PROXY_HOPS = 1;
+const isBehindKnownProxy =
+  process.env.TRUST_PROXY === "1" ||
+  Boolean(process.env.VERCEL) ||
+  Boolean(process.env.RAILWAY_ENVIRONMENT);
+
+if (isBehindKnownProxy) {
+  app.set("trust proxy", TRUST_PROXY_HOPS);
+}
 
 // Version disclosure; nothing downstream reads it.
 app.disable("x-powered-by");

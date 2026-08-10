@@ -33,9 +33,16 @@ pnpm start
 
 ## Content (Sanity)
 
-The site still renders from `app/lib/locales.js`. The Sanity groundwork is in place but
-not yet wired into the routes — `app/lib/sanity.js` exports a null client until a project
-ID exists, so nothing breaks in the meantime.
+The site renders from Sanity. The root loader calls `getContent()`
+(`app/lib/content.server.js`), and routes and components read the result through
+`useContent()`.
+
+When Sanity is unconfigured or unreachable — no `SANITY_STUDIO_PROJECT_ID`, a network
+failure, or an incomplete response — `getContent()` falls back to the bundled copy in
+`app/lib/locales.js` and `app/lib/inlineCopy.js` and logs a one-line notice. The site
+always renders; the risk is the quiet one, where a deployment missing its environment
+variables looks correct while every CMS edit appears to do nothing. `pnpm content:check`
+is what tells the two sources apart.
 
 The project (`kyyf7nu9`) exists and is seeded. To work on it locally:
 
