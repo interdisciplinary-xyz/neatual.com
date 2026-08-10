@@ -33,6 +33,15 @@ export const LOCALES = {
       call: "Zadzwoń",
       address: "ul.Siedlecka 172, 08-110 Żelków-Kolonia, Polska",
     },
+    error: {
+      notFoundHeading: "Nie ma takiej strony",
+      notFoundBody:
+        "Strona, której szukasz, nie istnieje lub została przeniesiona. Sprawdź adres albo wróć na stronę główną.",
+      errorHeading: "Coś poszło nie tak",
+      errorBody:
+        "Wystąpił nieoczekiwany błąd. Spróbuj ponownie za chwilę lub skontaktuj się z nami.",
+      backHome: "Wróć na stronę główną",
+    },
   },
   en: {
     lang: "en-US",
@@ -69,6 +78,15 @@ export const LOCALES = {
       call: "Call us",
       address: "ul.Siedlecka 172, 08-110 Żelków-Kolonia, Polska",
     },
+    error: {
+      notFoundHeading: "Page not found",
+      notFoundBody:
+        "The page you are looking for does not exist or has been moved. Check the address, or go back to the home page.",
+      errorHeading: "Something went wrong",
+      errorBody:
+        "An unexpected error occurred. Please try again shortly, or get in touch with us.",
+      backHome: "Back to the home page",
+    },
   },
   de: {
     lang: "de-DE",
@@ -104,6 +122,15 @@ export const LOCALES = {
       message: "Schreiben",
       call: "Anrufen",
       address: "ul.Siedlecka 172, 08-110 Żelków-Kolonia, Polska",
+    },
+    error: {
+      notFoundHeading: "Seite nicht gefunden",
+      notFoundBody:
+        "Die gesuchte Seite existiert nicht oder wurde verschoben. Prüfen Sie die Adresse oder kehren Sie zur Startseite zurück.",
+      errorHeading: "Etwas ist schiefgelaufen",
+      errorBody:
+        "Es ist ein unerwarteter Fehler aufgetreten. Bitte versuchen Sie es später erneut oder kontaktieren Sie uns.",
+      backHome: "Zurück zur Startseite",
     },
   },
 };
