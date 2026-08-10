@@ -43,7 +43,7 @@ export default function ContactPage() {
               <span className="text-14 font-bold">NEATUAL</span>
             </div>
             <span className="ml-auto text-14 tablet:ml-0 tablet:mt-6">
-              {settings?.address}
+              {settings?.addressLine}
             </span>
           </div>
         </div>

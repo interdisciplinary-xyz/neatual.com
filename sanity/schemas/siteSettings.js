@@ -13,7 +13,45 @@ export const siteSettings = {
       description: "Identical across all languages, so it is not translated.",
     },
     { name: "email", title: "Email", type: "string" },
-    { name: "address", title: "Address", type: "string" },
+    {
+      name: "address",
+      title: "Address",
+      type: "object",
+      description:
+        "Stored as separate parts because the JSON-LD needs them individually. The one-line form shown on the contact page is assembled from these, so the two cannot disagree.",
+      fields: [
+        {
+          name: "streetAddress",
+          title: "Street and number",
+          type: "string",
+          validation: (Rule) => Rule.required(),
+        },
+        {
+          name: "postalCode",
+          title: "Postal code",
+          type: "string",
+          validation: (Rule) => Rule.required(),
+        },
+        {
+          name: "addressLocality",
+          title: "Town or city",
+          type: "string",
+          validation: (Rule) => Rule.required(),
+        },
+        {
+          name: "addressCountry",
+          title: "Country code",
+          type: "string",
+          description: "Two-letter ISO code, e.g. PL. Used by search engines, never shown.",
+          validation: (Rule) => Rule.required().length(2).uppercase(),
+        },
+        localizedField({
+          name: "countryName",
+          title: "Country name",
+          description: "The country as written in the address on the page.",
+        }),
+      ],
+    },
     localizedField({ name: "messageCta", title: "‘Write to us’ button label" }),
     localizedField({ name: "callCta", title: "‘Call us’ button label" }),
     {

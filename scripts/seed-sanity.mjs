@@ -20,6 +20,7 @@ import {
   A11Y_LABELS,
   PAGE_META,
   PRODUCT_COPY,
+  ADDRESS,
   fillTemplate,
 } from "../app/lib/inlineCopy.js";
 
@@ -90,15 +91,15 @@ function buildPage(pageKey) {
 }
 
 function buildSiteSettings() {
-  // Phone, email and address are identical in all three locales today, so they
-  // are stored once rather than translated.
-  const { phone, email, address } = LOCALES.pl.contact;
+  // Phone and email are identical in all three locales today, so they are
+  // stored once rather than translated.
+  const { phone, email } = LOCALES.pl.contact;
   return {
     _id: "siteSettings",
     _type: "siteSettings",
     phone,
     email,
-    address,
+    address: ADDRESS,
     messageCta: byLocale((config) => config.contact.message),
     callCta: byLocale((config) => config.contact.call),
     a11y: {

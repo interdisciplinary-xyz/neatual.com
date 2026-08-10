@@ -7,7 +7,9 @@ import {
   A11Y_LABELS,
   PAGE_META,
   PRODUCT_COPY,
+  ADDRESS,
   fillTemplate,
+  formatAddress,
 } from "./inlineCopy.js";
 
 const CONTENT_QUERY = `{
@@ -79,7 +81,8 @@ function fromLocales(locale) {
     settings: {
       phone: config.contact.phone,
       email: config.contact.email,
-      address: config.contact.address,
+      address: ADDRESS,
+      addressLine: formatAddress(ADDRESS, locale),
       messageCta: config.contact.message,
       callCta: config.contact.call,
       a11y: {
@@ -146,6 +149,7 @@ function fromSanity(data, locale) {
       phone: s.phone,
       email: s.email,
       address: s.address,
+      addressLine: formatAddress(s.address, locale),
       messageCta: localized(s.messageCta, locale),
       callCta: localized(s.callCta, locale),
       a11y: Object.fromEntries(

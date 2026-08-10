@@ -94,12 +94,15 @@ function structuredData(pathname, content) {
       areaServed: "PL",
       availableLanguage: ["pl", "en", "de"],
     },
+    // Same source as the address rendered on the contact page. Hardcoding it
+    // here meant a move would update the visible address and leave the
+    // structured data pointing at the old premises.
     address: {
       "@type": "PostalAddress",
-      streetAddress: "ul. Siedlecka 172",
-      addressLocality: "Żelków-Kolonia",
-      postalCode: "08-110",
-      addressCountry: "PL",
+      streetAddress: settings?.address?.streetAddress,
+      addressLocality: settings?.address?.addressLocality,
+      postalCode: settings?.address?.postalCode,
+      addressCountry: settings?.address?.addressCountry,
     },
   };
 
