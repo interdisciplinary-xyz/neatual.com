@@ -1,4 +1,9 @@
 node_modules
 .DS_Store
 build
+dist
 .cache
+.sanity
+.env
+.env.*
+!.env.example

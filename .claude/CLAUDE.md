@@ -10,6 +10,9 @@ Neatual.com is a company website for Neatual, a Polish uniform manufacturer and 
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js
 - **Package Manager**: pnpm
+- **CMS**: Sanity 4.x — field-level i18n, separately hosted Studio. Scaffolded in
+  `sanity/` + `app/lib/sanity.js`; routes still read `app/lib/locales.js`.
+  Pinned to 4.x because 5.x+ requires React 19 and this app is on React 18.
 
 ## Project Structure
 
