@@ -9,7 +9,7 @@ Neatual.com is a company website for Neatual, a Polish uniform manufacturer and 
 - **Framework**: Remix 2 (React Router)
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js
-- **Package Manager**: yarn
+- **Package Manager**: pnpm
 
 ## Project Structure
 

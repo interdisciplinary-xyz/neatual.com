@@ -4,7 +4,7 @@
 set -e
 
 # build Remix app
-yarn build
+pnpm build
 
 # For GitHub Pages: Remix requires a Node server. Consider deploying to
 # Vercel, Netlify, or Railway instead. To deploy the built app:

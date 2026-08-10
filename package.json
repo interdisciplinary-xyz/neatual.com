@@ -2,11 +2,17 @@
   "name": "neatual.com",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
-    "dev": "node ./server.js",
     "build": "remix vite:build",
+    "cache:clean": "rm -rf node_modules build .cache && echo 'Caches cleared. Run pnpm install to reinstall.'",
+    "dev": "pnpm start:dev",
+    "lint": "eslint ./app",
+    "lint:fix": "eslint ./app --fix",
+    "reboot": "pnpm cache:clean && pnpm install && pnpm start:dev",
     "start": "cross-env NODE_ENV=production node ./server.js",
-    "lint": "eslint ./app"
+    "start:dev": "portless run --lan -- node ./server.js",
+    "start:dev:raw": "node ./server.js"
   },
   "dependencies": {
     "@remix-run/express": "^2.15.0",
@@ -15,6 +21,11 @@
     "isbot": "^4.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "devDependencies": {
     "@remix-run/dev": "^2.15.0",

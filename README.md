@@ -11,17 +11,24 @@ Company website for Neatual – a Polish uniform manufacturer and distributor (2
 ## Development
 
 ```bash
-yarn install
-yarn dev
+pnpm install
+pnpm start:dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+`start:dev` runs behind `portless`, which serves the app at `https://neatual.local` and exposes it on
+the LAN. Use `pnpm start:dev:raw` to skip the proxy and run on `PORT` (default 7777) directly.
+
+To start from a clean slate:
+
+```bash
+pnpm reboot   # cache:clean && install && start:dev
+```
 
 ## Build
 
 ```bash
-yarn build
-yarn start
+pnpm build
+pnpm start
 ```
 
 ## Routes
