@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { CloseIcon } from "./icons";
 import { useModalBehaviour } from "./useModalBehaviour";
+import { RichText } from "./RichText";
 
-export function ModalWithDetails({ isOpen, onClose, config }) {
+export function ModalWithDetails({ isOpen, onClose, page, closeLabel }) {
   const [dimensions, setDimensions] = useState({ width: "95%", height: "90%" });
   const containerRef = useModalBehaviour(isOpen, onClose);
 
@@ -42,18 +43,15 @@ export function ModalWithDetails({ isOpen, onClose, config }) {
           type="button"
           onClick={onClose}
           className="absolute top-6 left-6 z-10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-          aria-label={config.a11y.close}
+          aria-label={closeLabel}
         >
           <CloseIcon aria-hidden="true" />
         </button>
         <article className="p-6 pt-14 text-16 overflow-y-auto h-full">
           <h2 id="modal-details-heading" className="font-bold text-16 mb-6">
-            {config.home.heading}
+            {page?.heading}
           </h2>
-          <p
-            className="text-16 text-content mb-16"
-            dangerouslySetInnerHTML={{ __html: config.home.fullDescription }}
-          />
+          <RichText className="text-16 text-content mb-16" value={page?.body} />
         </article>
       </div>
     </div>

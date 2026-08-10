@@ -1,7 +1,8 @@
 import { Link, useLocation } from "@remix-run/react";
 import { LogoIcon, PlayIcon, StopIcon } from "./icons";
 import { useDeviceType } from "./DisplayMedia";
-import { LOCALES, getLocaleFromPath } from "../lib/locales";
+import { getLocaleFromPath } from "../lib/locales";
+import { useContent } from "../lib/useContent";
 
 const LANGUAGES = [
   { code: "pl", label: "PL" },
@@ -76,7 +77,8 @@ export function Header() {
   const location = useLocation();
   const pathname = location.pathname;
   const locale = getLocaleFromPath(pathname);
-  const config = LOCALES[locale];
+  const content = useContent();
+  const settings = content?.settings;
   const routeName = getRouteName(pathname);
   const deviceType = useDeviceType();
   const isContactPage = routeName === "CONTACT";
@@ -118,7 +120,7 @@ export function Header() {
               <LogoIcon className="mr-auto tablet:h-auto tablet:w-36 w-32" aria-hidden="true" />
             )}
             <span className="sr-only">
-              {showSvgLogo ? `Neatual — ${config.a11y.homeLink}` : `— ${config.a11y.homeLink}`}
+              {showSvgLogo ? `Neatual — ${settings?.a11y.homeLink ?? ""}` : `— ${settings?.a11y.homeLink ?? ""}`}
             </span>
           </Link>
         </div>
@@ -128,26 +130,26 @@ export function Header() {
               <li className="w-1/2">
                 <a
                   className="flex"
-                  href={`tel:${config.contact.phone.replace(/\s/g, "")}`}
-                  aria-label={locale === "pl" ? "Zadzwoń" : locale === "en" ? "Call" : "Anrufen"}
+                  href={`tel:${(settings?.phone ?? "").replace(/\s/g, "")}`}
+                  aria-label={settings?.a11y.call}
                 >
                   <PlayIcon className="mr-8 shrink-0" aria-hidden="true" />
-                  <span className="text-14">{config.contact.phone}</span>
+                  <span className="text-14">{settings?.phone}</span>
                 </a>
               </li>
               <li className="w-1/2">
                 <a
                   className="flex"
-                  href={`mailto:${config.contact.email}`}
-                  aria-label={locale === "pl" ? "Napisz e-mail" : locale === "en" ? "Send email" : "E-Mail senden"}
+                  href={`mailto:${settings?.email ?? ""}`}
+                  aria-label={settings?.a11y.email}
                 >
                   <StopIcon className="mr-8 shrink-0" aria-hidden="true" />
-                  <span className="text-14">{config.contact.email}</span>
+                  <span className="text-14">{settings?.email}</span>
                 </a>
               </li>
             </ul>
           )}
-          <nav className="desktop:w-1/3 flex ml-auto" aria-label={locale === "pl" ? "Wybierz język" : locale === "en" ? "Language selector" : "Sprachauswahl"}>
+          <nav className="desktop:w-1/3 flex ml-auto" aria-label={settings?.a11y.langNav}>
             {/*
               These links were 17x12, 18x12 and 12x12 px — under the WCAG
               2.5.8 minimum of 24x24 — because they carried no `text-*` class

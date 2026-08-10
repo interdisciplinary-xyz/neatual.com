@@ -5,27 +5,29 @@ import {
   HREFLANG_URLS,
   DEFAULT_LOCALE,
 } from "../lib/seo";
+import { getContent } from "../lib/content.server";
 
-function alternateLinks(page) {
+function alternateLinks(paths, page) {
+  const hrefFor = (code) => `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
   const links = LOCALE_CODES.map(
-    (code) =>
-      `    <xhtml:link rel="alternate" hreflang="${code}" href="${SITE_URL}${HREFLANG_URLS[code][page]}"/>`
+    (code) => `    <xhtml:link rel="alternate" hreflang="${code}" href="${hrefFor(code)}"/>`
   );
   links.push(
-    `    <xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${HREFLANG_URLS[DEFAULT_LOCALE][page]}"/>`
+    `    <xhtml:link rel="alternate" hreflang="x-default" href="${hrefFor(DEFAULT_LOCALE)}"/>`
   );
   return links.join("\n");
 }
 
-function sitemapXml() {
-  // Each locale of a page gets its own <loc>. Listing a URL only as an
-  // hreflang alternate does not submit it — every canonical URL needs an entry.
+function sitemapXml(paths) {
+  // Iterates PAGE_KEYS and LOCALE_CODES rather than Object.keys(paths): GROQ
+  // returns documents alphabetically, so keying off the response would silently
+  // reorder the sitemap depending on whether the CMS or the fallback answered.
   const urls = PAGE_KEYS.flatMap((page) =>
     LOCALE_CODES.map(
       (code) =>
         `  <url>
-    <loc>${SITE_URL}${HREFLANG_URLS[code][page]}</loc>
-${alternateLinks(page)}
+    <loc>${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}</loc>
+${alternateLinks(paths, page)}
   </url>`
     )
   );
@@ -38,7 +40,8 @@ ${urls.join("\n")}
 }
 
 export async function loader() {
-  return new Response(sitemapXml(), {
+  const content = await getContent(DEFAULT_LOCALE);
+  return new Response(sitemapXml(content.paths), {
     headers: {
       "Content-Type": "application/xml",
       "Cache-Control": "public, max-age=3600",

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "@remix-run/react";
 import { getProducts, getPhotoAlt } from "../lib/products";
 import { LOCALES, getLocaleFromPath } from "../lib/locales";
+import { useContent } from "../lib/useContent";
 import { ModalSingleProduct } from "../components/ModalSingleProduct";
 import { ProductImage } from "../components/ProductImage";
 
@@ -34,7 +35,13 @@ export default function GalleryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const config = LOCALES[locale];
+  const content = useContent();
+  const page = content?.pages.gallery;
+  // Two sources on purpose. srHeading and the close label are plain strings and
+  // come from the CMS; selectProduct/selectPhoto are *functions* taking a
+  // product name and a photo index, which no CMS field can express, so they
+  // stay in locales.js.
+  const a11y = LOCALES[locale].a11y;
   const products = useMemo(() => getProducts(locale), [locale]);
   const currentProduct = products[currentProductIndex];
   const currentPhoto =
@@ -54,7 +61,7 @@ export default function GalleryPage() {
         title — but the page had no heading of any level at all, on any
         locale. Matches the pattern already used on the homepage.
       */}
-      <h1 className="sr-only">{config.headings.gallery}</h1>
+      <h1 className="sr-only">{page?.srHeading}</h1>
       <div className="w-full desktop:flex desktop:gap-8">
         <div className="w-full desktop:w-1/3">
           <ul className="grid grid-cols-2 gap-4 desktop:grid-cols-3 desktop:overflow-y-auto desktop:h-full">
@@ -92,7 +99,7 @@ export default function GalleryPage() {
                 <button
                   type="button"
                   onClick={() => openProduct(index)}
-                  aria-label={config.a11y.selectProduct(item.name)}
+                  aria-label={a11y.selectProduct(item.name)}
                   aria-pressed={currentProductIndex === index}
                   className="absolute inset-0 w-full h-full cursor-pointer rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 />
@@ -144,7 +151,7 @@ export default function GalleryPage() {
                     <button
                       type="button"
                       onClick={() => setCurrentPhotoIndex(index)}
-                      aria-label={config.a11y.selectPhoto(index + 1)}
+                      aria-label={a11y.selectPhoto(index + 1)}
                       aria-pressed={currentPhotoIndex === index}
                       className="block w-full h-full overflow-hidden rounded-xl cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                     >
@@ -168,8 +175,8 @@ export default function GalleryPage() {
         product={currentProduct}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        closeLabel={config.a11y.close}
-        selectPhotoLabel={config.a11y.selectPhoto}
+        closeLabel={content?.settings.a11y.close}
+        selectPhotoLabel={a11y.selectPhoto}
         photoAlt={(i) => getPhotoAlt(locale, currentProduct.name, i)}
       />
     </article>

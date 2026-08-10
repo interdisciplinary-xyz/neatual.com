@@ -13,53 +13,134 @@ import {
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { LOCALES, getLocaleFromPath } from "./lib/locales";
-import { SITE_URL, HREFLANG_URLS, DEFAULT_LOCALE } from "./lib/seo";
+import { SITE_URL, HREFLANG_URLS, DEFAULT_LOCALE, getPageKey } from "./lib/seo";
+import { getContent } from "./lib/content.server";
 import "./tailwind.css";
 
-function getPageMeta(pathname) {
-  const locale = getLocaleFromPath(pathname);
-  const config = LOCALES[locale];
-  const isGallery =
-    pathname.includes("/galeria") ||
-    pathname.includes("/gallery") ||
-    pathname.includes("/galerie");
-  const isContact =
-    pathname.includes("/kontakt") ||
-    pathname.includes("/contact") ||
-    pathname.includes("/kontakte");
-
-  let title = config.title;
-  let description = config.description;
-  if (isGallery) {
-    title = `${config.title} — ${locale === "pl" ? "Galeria" : locale === "en" ? "Gallery" : "Galerie"}`;
-    description =
-      locale === "pl"
-        ? "Galeria produktów Neatual - uniformy szyte w Polsce z polskich materiałów."
-        : locale === "en"
-          ? "Neatual product gallery - uniforms made in Poland from Polish materials."
-          : "Neatual Produktgalerie - in Polen aus polnischen Materialien gefertigte Uniformen.";
-  } else if (isContact) {
-    title = `${config.title} — ${locale === "pl" ? "Kontakt" : locale === "en" ? "Contact" : "Kontakt"}`;
-    description =
-      locale === "pl"
-        ? "Skontaktuj się z Neatual - ul. Siedlecka 172, Żelków-Kolonia. Tel. +48 739 903 148."
-        : locale === "en"
-          ? "Contact Neatual - ul. Siedlecka 172, Żelków-Kolonia. Phone +48 739 903 148."
-          : "Kontakt Neatual - ul. Siedlecka 172, Żelków-Kolonia. Tel. +48 739 903 148.";
-  }
-
-  const canonicalPath = pathname.endsWith("/") && pathname !== "/"
-    ? pathname.slice(0, -1)
-    : pathname || "/";
-  const canonical = `${SITE_URL}${canonicalPath}`;
-
-  return { title, description, canonical, locale: config.lang };
+function canonicalFor(pathname) {
+  const canonicalPath =
+    pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname || "/";
+  return `${SITE_URL}${canonicalPath}`;
 }
 
-export const meta = ({ location }) => {
-  const { title, description, canonical, locale } = getPageMeta(
-    location?.pathname || "/"
-  );
+/**
+ * Title and description now come from the CMS. `content` is absent only when the
+ * root loader itself failed — Remix still renders meta for the ErrorBoundary —
+ * so fall back to the bundled copy rather than emitting an empty <title>.
+ */
+function getPageMeta(pathname, content) {
+  const locale = getLocaleFromPath(pathname);
+  const page = getPageKey(pathname);
+  const cmsPage = content?.pages?.[page];
+
+  return {
+    title: cmsPage?.metaTitle ?? LOCALES[locale].title,
+    description: cmsPage?.metaDescription ?? LOCALES[locale].description,
+    canonical: canonicalFor(pathname),
+    locale: LOCALES[locale].lang,
+    page,
+  };
+}
+
+// Open Graph wants pl_PL, not the BCP-47 pl-PL that `lang` uses; Facebook and
+// LinkedIn ignore the hyphenated form outright.
+const toOgLocale = (bcp47) => bcp47.replace("-", "_");
+
+const OG_IMAGE = {
+  url: `${SITE_URL}/og-image.jpg`,
+  width: "1200",
+  height: "630",
+};
+
+const ORGANISATION_ID = `${SITE_URL}/#organization`;
+
+/**
+ * A @graph rather than a single node: the organisation is the same entity on
+ * every page and is referenced by @id, while the page node varies by route.
+ *
+ * Typed as both Organization and LocalBusiness — Neatual manufactures and
+ * distributes, and has a street address, so both apply and the pair is what
+ * feeds the local results. Deliberately omits openingHours, geo, sameAs,
+ * priceRange and foundingDate: none of them exist anywhere in this codebase
+ * and inventing them is worse than leaving them out.
+ */
+function structuredData(pathname, content) {
+  const locale = getLocaleFromPath(pathname);
+  const config = LOCALES[locale];
+  const { canonical, title, description, page } = getPageMeta(pathname, content);
+  const settings = content?.settings;
+
+  // schema.org wants a dialable string, and the CMS stores the display form
+  // ("+ 48 739 903 148"), so strip the spaces rather than storing it twice.
+  const telephone = (settings?.phone ?? "+48 739 903 148").replace(/\s/g, "");
+  const email = settings?.email ?? "info@neatual.com";
+
+  const organisation = {
+    "@type": ["Organization", "LocalBusiness"],
+    "@id": ORGANISATION_ID,
+    name: "Neatual",
+    url: SITE_URL,
+    logo: `${SITE_URL}/favicon.svg`,
+    image: OG_IMAGE.url,
+    description: config.description,
+    telephone,
+    email,
+    areaServed: "PL",
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone,
+      email,
+      contactType: "customer service",
+      areaServed: "PL",
+      availableLanguage: ["pl", "en", "de"],
+    },
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "ul. Siedlecka 172",
+      addressLocality: "Żelków-Kolonia",
+      postalCode: "08-110",
+      addressCountry: "PL",
+    },
+  };
+
+  const pageType =
+    page === "gallery"
+      ? "CollectionPage"
+      : page === "contact"
+        ? "ContactPage"
+        : "WebPage";
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      organisation,
+      {
+        "@type": pageType,
+        "@id": `${canonical}#page`,
+        url: canonical,
+        name: title,
+        description,
+        inLanguage: config.lang,
+        isPartOf: { "@id": `${SITE_URL}/#website` },
+        about: { "@id": ORGANISATION_ID },
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${SITE_URL}/#website`,
+        url: SITE_URL,
+        name: "Neatual",
+        publisher: { "@id": ORGANISATION_ID },
+        inLanguage: ["pl-PL", "en-US", "de-DE"],
+      },
+    ],
+  };
+}
+
+export const meta = ({ data, location }) => {
+  const pathname = location?.pathname || "/";
+  const { title, description, canonical, locale } = getPageMeta(pathname, data?.content);
+  const activeLocale = getLocaleFromPath(pathname);
+
   return [
     { charset: "utf-8" },
     { name: "viewport", content: "width=device-width, initial-scale=1.0" },
@@ -69,29 +150,42 @@ export const meta = ({ location }) => {
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
     { property: "og:url", content: canonical },
-    { property: "og:locale", content: locale },
-    { name: "twitter:card", content: "summary" },
+    { property: "og:site_name", content: "Neatual" },
+    { property: "og:locale", content: toOgLocale(locale) },
+    // Tells crawlers the same page exists in the other two languages; pairs
+    // with the hreflang links in <head>.
+    ...Object.keys(HREFLANG_URLS)
+      .filter((code) => code !== activeLocale)
+      .map((code) => ({
+        property: "og:locale:alternate",
+        content: toOgLocale(LOCALES[code].lang),
+      })),
+    { property: "og:image", content: OG_IMAGE.url },
+    { property: "og:image:width", content: OG_IMAGE.width },
+    { property: "og:image:height", content: OG_IMAGE.height },
+    { property: "og:image:alt", content: title },
+    // summary_large_image rather than summary: there is a real 1200x630 card
+    // to show now.
+    { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
+    { name: "twitter:image", content: OG_IMAGE.url },
   ];
 };
 
-function getAlternatePaths(pathname) {
-  const path = pathname.replace(/\/$/, "") || "/";
-  const isGallery =
-    path.includes("/galeria") ||
-    path.includes("/gallery") ||
-    path.includes("/galerie");
-  const isContact =
-    path.includes("/kontakt") ||
-    path.includes("/contact") ||
-    path.includes("/kontakte");
-  const page = isGallery ? "gallery" : isContact ? "contact" : "home";
+/**
+ * Paths come from the CMS so a slug edited in the Studio updates the hreflang
+ * tags without a deploy. `HREFLANG_URLS` remains the fallback for the case where
+ * the loader could not reach Sanity.
+ */
+function getAlternatePaths(pathname, paths = HREFLANG_URLS) {
+  const page = getPageKey(pathname);
+  const hrefFor = (code) => `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
   return [
-    { rel: "alternate", hreflang: "pl", href: `${SITE_URL}${HREFLANG_URLS.pl[page]}` },
-    { rel: "alternate", hreflang: "en", href: `${SITE_URL}${HREFLANG_URLS.en[page]}` },
-    { rel: "alternate", hreflang: "de", href: `${SITE_URL}${HREFLANG_URLS.de[page]}` },
-    { rel: "alternate", hreflang: "x-default", href: `${SITE_URL}${HREFLANG_URLS[DEFAULT_LOCALE][page]}` },
+    { rel: "alternate", hreflang: "pl", href: hrefFor("pl") },
+    { rel: "alternate", hreflang: "en", href: hrefFor("en") },
+    { rel: "alternate", hreflang: "de", href: hrefFor("de") },
+    { rel: "alternate", hreflang: "x-default", href: hrefFor(DEFAULT_LOCALE) },
   ];
 }
 
@@ -107,15 +201,20 @@ export const links = () => [
 
 export async function loader({ request }) {
   const url = new URL(request.url);
-  return { pathname: url.pathname };
+  const locale = getLocaleFromPath(url.pathname);
+  // One query for the whole site. Every route and both chrome components read
+  // this via useRouteLoaderData("root"), so there is exactly one CMS round-trip
+  // per request and the locale re-export routes need no loader of their own.
+  const content = await getContent(locale);
+  return { pathname: url.pathname, content };
 }
 
 export default function App() {
-  const { pathname } = useLoaderData() ?? { pathname: "/" };
+  const { pathname, content } = useLoaderData() ?? { pathname: "/" };
   const locale = getLocaleFromPath(pathname);
   const htmlLang = locale === "pl" ? "pl" : locale === "en" ? "en" : "de";
-  const { canonical } = getPageMeta(pathname);
-  const alternates = getAlternatePaths(pathname);
+  const { canonical } = getPageMeta(pathname, content);
+  const alternates = getAlternatePaths(pathname, content?.paths);
 
   return (
     <html lang={htmlLang} className="font-sans">
@@ -129,27 +228,7 @@ export default function App() {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              name: "Neatual",
-              url: SITE_URL,
-              logo: `${SITE_URL}/favicon.svg`,
-              contactPoint: {
-                "@type": "ContactPoint",
-                telephone: "+48-739-903-148",
-                email: "info@neatual.com",
-                contactType: "customer service",
-                areaServed: "PL",
-              },
-              address: {
-                "@type": "PostalAddress",
-                streetAddress: "ul. Siedlecka 172",
-                addressLocality: "Żelków-Kolonia",
-                postalCode: "08-110",
-                addressCountry: "PL",
-              },
-            }),
+            __html: JSON.stringify(structuredData(pathname, content)),
           }}
         />
       </head>

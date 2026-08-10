@@ -14,3 +14,13 @@ export const HREFLANG_URLS = {
 
 // Polish is the default locale, so it backs x-default.
 export const DEFAULT_LOCALE = "pl";
+
+// Which of the three pages a path points at, in any locale. Both the meta and
+// the hreflang logic in root.jsx derived this separately before; keeping one
+// implementation means they can't disagree about what page you're on.
+export function getPageKey(pathname) {
+  const path = String(pathname || "/").replace(/\/$/, "") || "/";
+  if (/\/(galeria|gallery|galerie)$/.test(path)) return "gallery";
+  if (/\/(kontakt|contact|kontakte)$/.test(path)) return "contact";
+  return "home";
+}
