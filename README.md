@@ -1,6 +1,6 @@
 # Neatual.com
 
-Company website for Neatual – a Polish uniform manufacturer and distributor (25+ years). Built with **Remix** and **Tailwind CSS**.
+Company website for Neatual – a Polish wallpaper-hanging company working across Poland. Built with **Remix** and **Tailwind CSS**.
 
 ## Tech Stack
 

@@ -8,9 +8,9 @@
 
 /** The home page's visually hidden <h1>, previously inline in app/routes/_index.jsx. */
 export const HOME_SR_HEADING = {
-  pl: "Neatual - produkcja i dystrybucja uniformów",
-  en: "Neatual - uniform production and distribution",
-  de: "Neatual - Uniformproduktion und -vertrieb",
+  pl: "Neatual — montaż tapet w całej Polsce",
+  en: "Neatual — wallpaper installation across Poland",
+  de: "Neatual — Tapezierarbeiten in ganz Polen",
 };
 
 /**
@@ -110,11 +110,15 @@ export const PRODUCTS = [
   {
     slug: "kwiatowe",
     photoCount: 4,
-    name: { pl: "Murale kwiatowe", en: "Floral murals", de: "Blumen-Wandbilder" },
+    name: {
+      pl: "Fototapety kwiatowe",
+      en: "Floral murals",
+      de: "Blumen-Fototapeten",
+    },
     alt: {
       pl: "Fototapeta z kwiatami w dużej skali, zamontowana na ścianie wnętrza",
       en: "Large-scale floral mural installed on an interior wall",
-      de: "Großformatiges Blumen-Wandbild an einer Innenwand",
+      de: "Großformatige Blumen-Fototapete an einer Innenwand",
     },
   },
   {
@@ -128,21 +132,21 @@ export const PRODUCTS = [
     alt: {
       pl: "Fototapeta z liśćmi i roślinnością tropikalną na ścianie wnętrza",
       en: "Mural of tropical leaves and foliage on an interior wall",
-      de: "Wandbild mit tropischen Blättern und Pflanzen an einer Innenwand",
+      de: "Fototapete mit tropischen Blättern und Pflanzen an einer Innenwand",
     },
   },
   {
     slug: "artystyczne",
     photoCount: 4,
     name: {
-      pl: "Murale artystyczne",
+      pl: "Fototapety artystyczne",
       en: "Artistic murals",
-      de: "Künstlerische Wandbilder",
+      de: "Künstlerische Fototapeten",
     },
     alt: {
-      pl: "Dekoracyjny mural artystyczny pokrywający całą ścianę wnętrza",
+      pl: "Dekoracyjna fototapeta artystyczna pokrywająca całą ścianę wnętrza",
       en: "Decorative artistic mural covering a full interior wall",
-      de: "Dekoratives künstlerisches Wandbild über eine ganze Innenwand",
+      de: "Dekorative künstlerische Fototapete über eine ganze Innenwand",
     },
   },
   {
@@ -152,7 +156,7 @@ export const PRODUCTS = [
     alt: {
       pl: "Fototapeta z pejzażem nadmorskim na ścianie wnętrza",
       en: "Coastal landscape mural on an interior wall",
-      de: "Wandbild mit Küstenlandschaft an einer Innenwand",
+      de: "Fototapete mit Küstenlandschaft an einer Innenwand",
     },
   },
   {
@@ -193,8 +197,14 @@ export const PRODUCT_SHARED = {
     de: "Preis auf Anfrage",
   },
   descriptionLines: {
-    pl: ["Tapeta dobierana pod wymiar ściany", "Zdjęcia z realizacji u klientów"],
-    en: ["Sized to the wall it is hung on", "Photographed at completed installations"],
+    pl: [
+      "Tapeta dobierana pod wymiar ściany",
+      "Zdjęcia z realizacji u klientów",
+    ],
+    en: [
+      "Sized to the wall it is hung on",
+      "Photographed at completed installations",
+    ],
     de: ["Auf das Wandmaß abgestimmt", "Fotos abgeschlossener Umsetzungen"],
   },
 };
@@ -208,9 +218,9 @@ export const PAGE_META = {
   gallery: {
     suffix: { pl: "Galeria", en: "Gallery", de: "Galerie" },
     description: {
-      pl: "Galeria produktów Neatual - uniformy szyte w Polsce z polskich materiałów.",
-      en: "Neatual product gallery - uniforms made in Poland from Polish materials.",
-      de: "Neatual Produktgalerie - in Polen aus polnischen Materialien gefertigte Uniformen.",
+      pl: "Zdjęcia zrealizowanych montaży: fototapety, tapety wzorzyste i tekstury — w łazienkach, sypialniach, przy basenie i w przestrzeniach komercyjnych.",
+      en: "Photographs of finished installations — murals, patterned and textured wallpaper in bathrooms, bedrooms, a pool area and commercial spaces.",
+      de: "Fotos abgeschlossener Projekte — Fototapeten, gemusterte und strukturierte Tapeten in Bädern, Schlafzimmern, am Pool und in Gewerberäumen.",
     },
   },
   contact: {

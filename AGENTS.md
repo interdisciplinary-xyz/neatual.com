@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Neatual.com is a company website for Neatual, a Polish uniform manufacturer and distributor (25+ years). Built with **Remix** and **Tailwind CSS**.
+Neatual.com is a company website for Neatual, a Polish wallpaper-hanging company working across Poland. Installation only — the client or their designer supplies the wallpaper. Built with **Remix** and **Tailwind CSS**.
 
 ## Tech Stack
 
