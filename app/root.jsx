@@ -9,9 +9,8 @@ import {
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { LOCALES, getLocaleFromPath } from "./lib/locales";
+import { SITE_URL, HREFLANG_URLS, DEFAULT_LOCALE } from "./lib/seo";
 import "./tailwind.css";
-
-const SITE_URL = "https://neatual.com";
 
 function getPageMeta(pathname) {
   const locale = getLocaleFromPath(pathname);
@@ -73,12 +72,6 @@ export const meta = ({ location }) => {
   ];
 };
 
-const HREFLANG_URLS = {
-  pl: { home: "/", gallery: "/galeria", contact: "/kontakt" },
-  en: { home: "/en", gallery: "/en/gallery", contact: "/en/contact" },
-  de: { home: "/de", gallery: "/de/galerie", contact: "/de/kontakte" },
-};
-
 function getAlternatePaths(pathname) {
   const path = pathname.replace(/\/$/, "") || "/";
   const isGallery =
@@ -94,7 +87,7 @@ function getAlternatePaths(pathname) {
     { rel: "alternate", hreflang: "pl", href: `${SITE_URL}${HREFLANG_URLS.pl[page]}` },
     { rel: "alternate", hreflang: "en", href: `${SITE_URL}${HREFLANG_URLS.en[page]}` },
     { rel: "alternate", hreflang: "de", href: `${SITE_URL}${HREFLANG_URLS.de[page]}` },
-    { rel: "alternate", hreflang: "x-default", href: `${SITE_URL}${HREFLANG_URLS.pl[page]}` },
+    { rel: "alternate", hreflang: "x-default", href: `${SITE_URL}${HREFLANG_URLS[DEFAULT_LOCALE][page]}` },
   ];
 }
 
