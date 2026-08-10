@@ -19,7 +19,8 @@ import {
   HOME_SR_HEADING,
   A11Y_LABELS,
   PAGE_META,
-  PRODUCT_COPY,
+  PRODUCTS,
+  PRODUCT_SHARED,
   ADDRESS,
   fillTemplate,
 } from "../app/lib/inlineCopy.js";
@@ -31,7 +32,9 @@ const dataset = process.env.SANITY_STUDIO_DATASET || "production";
 const token = process.env.SANITY_WRITE_TOKEN;
 
 if (!dryRun && !asNdjson && !projectId) {
-  console.error("SANITY_STUDIO_PROJECT_ID is not set. Copy .env.example to .env first.");
+  console.error(
+    "SANITY_STUDIO_PROJECT_ID is not set. Copy .env.example to .env first."
+  );
   process.exit(1);
 }
 if (!dryRun && !asNdjson && !token) {
@@ -42,13 +45,13 @@ if (!dryRun && !asNdjson && !token) {
   process.exit(1);
 }
 
-
 const NAV_INDEX = { home: 0, gallery: 1, contact: 2 };
-
 
 /** Builds a { pl, en, de } object by running `pick` for each locale. */
 const byLocale = (pick) =>
-  Object.fromEntries(LOCALE_CODES.map((code) => [code, pick(LOCALES[code], code)]));
+  Object.fromEntries(
+    LOCALE_CODES.map((code) => [code, pick(LOCALES[code], code)])
+  );
 
 function buildPage(pageKey) {
   const meta = PAGE_META[pageKey];
@@ -78,7 +81,9 @@ function buildPage(pageKey) {
 
   if (pageKey === "home") {
     doc.heading = byLocale((config) => tidy(config.home.heading));
-    doc.shortDescription = byLocale((config) => tidy(config.home.shortDescription));
+    doc.shortDescription = byLocale((config) =>
+      tidy(config.home.shortDescription)
+    );
     doc.body = Object.fromEntries(
       LOCALE_CODES.map((code) => [
         code,
@@ -117,36 +122,40 @@ function buildSiteSettings() {
   };
 }
 
-function buildProduct(n) {
+function buildProduct(product, index) {
   return {
-    _id: `product-${n}`,
+    _id: `product-${product.slug}`,
     _type: "product",
-    order: n,
-    imageBase: `produkt-${n}`,
-    photoCount: PRODUCT_COPY.photoCount,
-    name: byLocale((_, code) => fillTemplate(PRODUCT_COPY.name[code], { n })),
-    price: byLocale((_, code) => PRODUCT_COPY.price[code]),
-    descriptionLines: byLocale((_, code) => PRODUCT_COPY.descriptionLines[code]),
-    alt: byLocale((_, code) => fillTemplate(PRODUCT_COPY.alt[code], { n })),
+    order: index + 1,
+    imageBase: product.slug,
+    photoCount: product.photoCount,
+    name: byLocale((_, code) => product.name[code]),
+    price: byLocale((_, code) => PRODUCT_SHARED.price[code]),
+    descriptionLines: byLocale((_, code) => PRODUCT_SHARED.descriptionLines[code]),
+    alt: byLocale((_, code) => product.alt[code]),
   };
 }
 
 const documents = [
   ...PAGE_KEYS.map(buildPage),
-  ...PRODUCT_COPY.numbers.map(buildProduct),
+  ...PRODUCTS.map(buildProduct),
   buildSiteSettings(),
 ];
 
 if (asNdjson) {
   // One document per line, for `sanity dataset import`, which authenticates
   // with the CLI session rather than a token.
-  process.stdout.write(documents.map((doc) => JSON.stringify(doc)).join("\n") + "\n");
+  process.stdout.write(
+    documents.map((doc) => JSON.stringify(doc)).join("\n") + "\n"
+  );
   process.exit(0);
 }
 
 if (dryRun) {
   console.log(JSON.stringify(documents, null, 2));
-  console.log(`\nDry run — ${documents.length} documents built, nothing written.`);
+  console.log(
+    `\nDry run — ${documents.length} documents built, nothing written.`
+  );
   process.exit(0);
 }
 
@@ -168,4 +177,6 @@ await transaction.commit();
 for (const doc of documents) {
   console.log(`  ✓ ${doc._id}`);
 }
-console.log(`\nSeeded ${documents.length} documents into ${projectId}/${dataset}.`);
+console.log(
+  `\nSeeded ${documents.length} documents into ${projectId}/${dataset}.`
+);

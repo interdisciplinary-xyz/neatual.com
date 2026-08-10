@@ -1,14 +1,19 @@
 import { sanityClient, isSanityConfigured, localized } from "./sanity.js";
 import { LOCALES } from "./locales.js";
-import { HREFLANG_URLS, LOCALE_CODES, PAGE_KEYS, DEFAULT_LOCALE } from "./seo.js";
+import {
+  HREFLANG_URLS,
+  LOCALE_CODES,
+  PAGE_KEYS,
+  DEFAULT_LOCALE,
+} from "./seo.js";
 import { htmlToBlocks, tidy } from "./portableText.js";
 import {
   HOME_SR_HEADING,
   A11Y_LABELS,
   PAGE_META,
-  PRODUCT_COPY,
+  PRODUCTS,
+  PRODUCT_SHARED,
   ADDRESS,
-  fillTemplate,
   formatAddress,
 } from "./inlineCopy.js";
 
@@ -47,7 +52,9 @@ function fromLocales(locale) {
           pageKey,
           path: HREFLANG_URLS[locale][pageKey],
           navLabel: config.navItems[NAV_INDEX[pageKey]].label,
-          srHeading: isHome ? HOME_SR_HEADING[locale] : config.headings[pageKey],
+          srHeading: isHome
+            ? HOME_SR_HEADING[locale]
+            : config.headings[pageKey],
           metaTitle: isHome
             ? config.title
             : `${config.title} — ${PAGE_META[pageKey].suffix[locale]}`,
@@ -55,21 +62,25 @@ function fromLocales(locale) {
             ? config.description
             : PAGE_META[pageKey].description[locale],
           heading: isHome ? tidy(config.home.heading) : undefined,
-          shortDescription: isHome ? tidy(config.home.shortDescription) : undefined,
-          body: isHome ? htmlToBlocks(config.home.fullDescription, `home-${locale}`) : [],
+          shortDescription: isHome
+            ? tidy(config.home.shortDescription)
+            : undefined,
+          body: isHome
+            ? htmlToBlocks(config.home.fullDescription, `home-${locale}`)
+            : [],
         },
       ];
     })
   );
 
-  const products = PRODUCT_COPY.numbers.map((n) => ({
-    order: n,
-    imageBase: `produkt-${n}`,
-    photoCount: PRODUCT_COPY.photoCount,
-    name: fillTemplate(PRODUCT_COPY.name[locale], { n }),
-    price: PRODUCT_COPY.price[locale],
-    descriptionLines: PRODUCT_COPY.descriptionLines[locale],
-    alt: fillTemplate(PRODUCT_COPY.alt[locale], { n }),
+  const products = PRODUCTS.map((product, index) => ({
+    order: index + 1,
+    imageBase: product.slug,
+    photoCount: product.photoCount,
+    name: product.name[locale],
+    price: PRODUCT_SHARED.price[locale],
+    descriptionLines: PRODUCT_SHARED.descriptionLines[locale],
+    alt: product.alt[locale],
   }));
 
   return {
@@ -124,7 +135,9 @@ function fromSanity(data, locale) {
   const paths = Object.fromEntries(
     LOCALE_CODES.map((code) => [
       code,
-      Object.fromEntries(data.pages.map((p) => [p.pageKey, localized(p.path, code)])),
+      Object.fromEntries(
+        data.pages.map((p) => [p.pageKey, localized(p.path, code)])
+      ),
     ])
   );
 
@@ -153,7 +166,10 @@ function fromSanity(data, locale) {
       messageCta: localized(s.messageCta, locale),
       callCta: localized(s.callCta, locale),
       a11y: Object.fromEntries(
-        Object.entries(s.a11y ?? {}).map(([key, value]) => [key, localized(value, locale)])
+        Object.entries(s.a11y ?? {}).map(([key, value]) => [
+          key,
+          localized(value, locale),
+        ])
       ),
     },
   };

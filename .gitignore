@@ -10,3 +10,8 @@ dist
 
 # Lighthouse CI reports (uploaded as a CI artifact instead)
 .lighthouseci
+
+# Camera-roll drop zone. Anything under public/ is served, so 22 MB of HEIC
+# masters would be publicly downloadable and shipped on every deploy. The
+# masters that the gallery is built from live in art/gallery-originals/.
+public/photos

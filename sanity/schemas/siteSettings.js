@@ -42,7 +42,8 @@ export const siteSettings = {
           name: "addressCountry",
           title: "Country code",
           type: "string",
-          description: "Two-letter ISO code, e.g. PL. Used by search engines, never shown.",
+          description:
+            "Two-letter ISO code, e.g. PL. Used by search engines, never shown.",
           validation: (Rule) => Rule.required().length(2).uppercase(),
         },
         localizedField({
@@ -82,7 +83,8 @@ export const siteSettings = {
         localizedField({
           name: "photoAlt",
           title: "Product photo alt text",
-          description: "Use {name} for the product and {n} for the photo number.",
+          description:
+            "Use {name} for the product and {n} for the photo number.",
         }),
       ],
     },

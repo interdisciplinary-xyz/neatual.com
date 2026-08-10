@@ -19,7 +19,9 @@ import "./tailwind.css";
 
 function canonicalFor(pathname) {
   const canonicalPath =
-    pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname || "/";
+    pathname.endsWith("/") && pathname !== "/"
+      ? pathname.slice(0, -1)
+      : pathname || "/";
   return `${SITE_URL}${canonicalPath}`;
 }
 
@@ -67,7 +69,10 @@ const ORGANISATION_ID = `${SITE_URL}/#organization`;
 function structuredData(pathname, content) {
   const locale = getLocaleFromPath(pathname);
   const config = LOCALES[locale];
-  const { canonical, title, description, page } = getPageMeta(pathname, content);
+  const { canonical, title, description, page } = getPageMeta(
+    pathname,
+    content
+  );
   const settings = content?.settings;
 
   // schema.org wants a dialable string, and the CMS stores the display form
@@ -141,7 +146,10 @@ function structuredData(pathname, content) {
 
 export const meta = ({ data, location }) => {
   const pathname = location?.pathname || "/";
-  const { title, description, canonical, locale } = getPageMeta(pathname, data?.content);
+  const { title, description, canonical, locale } = getPageMeta(
+    pathname,
+    data?.content
+  );
   const activeLocale = getLocaleFromPath(pathname);
 
   return [
@@ -183,7 +191,8 @@ export const meta = ({ data, location }) => {
  */
 function getAlternatePaths(pathname, paths = HREFLANG_URLS) {
   const page = getPageKey(pathname);
-  const hrefFor = (code) => `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
+  const hrefFor = (code) =>
+    `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
   return [
     { rel: "alternate", hreflang: "pl", href: hrefFor("pl") },
     { rel: "alternate", hreflang: "en", href: hrefFor("en") },
@@ -195,7 +204,11 @@ function getAlternatePaths(pathname, paths = HREFLANG_URLS) {
 export const links = () => [
   { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+  {
+    rel: "preconnect",
+    href: "https://fonts.gstatic.com",
+    crossOrigin: "anonymous",
+  },
   {
     rel: "stylesheet",
     href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto:wght@400;700;900&display=swap",
@@ -226,7 +239,12 @@ export default function App() {
         <Links />
         <link rel="canonical" href={canonical} />
         {alternates.map((alt) => (
-          <link key={alt.hreflang} rel="alternate" hrefLang={alt.hreflang} href={alt.href} />
+          <link
+            key={alt.hreflang}
+            rel="alternate"
+            hrefLang={alt.hreflang}
+            href={alt.href}
+          />
         ))}
         <script
           type="application/ld+json"
@@ -285,9 +303,7 @@ export function ErrorBoundary() {
   const heading = isNotFound
     ? config.error.notFoundHeading
     : config.error.errorHeading;
-  const body = isNotFound
-    ? config.error.notFoundBody
-    : config.error.errorBody;
+  const body = isNotFound ? config.error.notFoundBody : config.error.errorBody;
 
   return (
     <html lang={locale} className="font-sans">

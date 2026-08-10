@@ -49,23 +49,15 @@ export default function ContactPage() {
         </div>
         <DisplayMedia displays={["mobile", "tablet"]}>
           <div>
-            <Button href={mailto}>
-              {settings?.messageCta}
-            </Button>
-            <Button href={tel}>
-              {settings?.callCta}
-            </Button>
+            <Button href={mailto}>{settings?.messageCta}</Button>
+            <Button href={tel}>{settings?.callCta}</Button>
           </div>
         </DisplayMedia>
       </div>
       <DisplayMedia displays={["desktop"]}>
         <div>
-          <Button href={mailto}>
-            {settings?.messageCta}
-          </Button>
-          <Button href={tel}>
-            {settings?.callCta}
-          </Button>
+          <Button href={mailto}>{settings?.messageCta}</Button>
+          <Button href={tel}>{settings?.callCta}</Button>
         </div>
       </DisplayMedia>
     </article>
