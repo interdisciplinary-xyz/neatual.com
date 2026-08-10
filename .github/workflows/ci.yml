@@ -9,6 +9,13 @@ on:
     branches: [master, "scope/**", "release/**"]
   pull_request:
 
+# A branch with an open PR fired both the push and the pull_request event, so
+# every job ran twice and PR #2 showed 6 failing checks for 3 failures. Runs on
+# the same ref now supersede each other.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Lint & build
@@ -71,10 +78,13 @@ jobs:
       # Nothing would have caught a committed credential. The repo has no
       # secrets today — no env reads outside NODE_ENV — but it grew a
       # .env.example and a CMS token surface in the same week this was written.
+      # `--fail` is NOT passed here: the action already appends it, and
+      # trufflehog rejects a repeated flag ("flag 'fail' cannot be repeated"),
+      # which failed the job for a config error rather than a finding.
       - name: TruffleHog
         uses: trufflesecurity/trufflehog@main
         with:
-          extra_args: --results=verified --fail
+          extra_args: --results=verified
 
   performance:
     name: Lighthouse budgets

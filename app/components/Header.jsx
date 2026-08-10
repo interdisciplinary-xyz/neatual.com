@@ -133,23 +133,26 @@ export function Header() {
         <div className="desktop:w-2/3 desktop:flex desktop:px-36">
           {showContact && (
             <ul className="hidden desktop:flex w-2/3">
+              {/*
+                sr-only verb rather than aria-label, so the accessible name
+                contains the visible phone number and address (WCAG 2.5.3).
+                These render only at >=1114px, which is why the mobile
+                Lighthouse run never flagged them — same defect as kontakt.jsx.
+              */}
               <li className="w-1/2">
                 <a
                   className="flex"
                   href={`tel:${(settings?.phone ?? "").replace(/\s/g, "")}`}
-                  aria-label={settings?.a11y.call}
                 >
                   <PlayIcon className="mr-8 shrink-0" aria-hidden="true" />
+                  <span className="sr-only">{settings?.a11y.call}</span>
                   <span className="text-14">{settings?.phone}</span>
                 </a>
               </li>
               <li className="w-1/2">
-                <a
-                  className="flex"
-                  href={`mailto:${settings?.email ?? ""}`}
-                  aria-label={settings?.a11y.email}
-                >
+                <a className="flex" href={`mailto:${settings?.email ?? ""}`}>
                   <StopIcon className="mr-8 shrink-0" aria-hidden="true" />
+                  <span className="sr-only">{settings?.a11y.email}</span>
                   <span className="text-14">{settings?.email}</span>
                 </a>
               </li>

@@ -21,20 +21,21 @@ export default function ContactPage() {
       </DisplayMedia>
       <div className="flex flex-col h-full max-w-lg mx-auto tablet:justify-center desktop:block desktop:max-w-none desktop:mx-0">
         <div>
-          <a
-            className="flex pb-8 mb-8 border-b border-black"
-            href={tel}
-            aria-label={settings?.a11y.call}
-          >
+          {/*
+            The verb is an sr-only sibling, not an aria-label. As a label it
+            replaced the accessible name with "Zadzwoń" while the visible text
+            was the phone number, so the name did not contain the visible
+            label — WCAG 2.5.3, and voice control could not activate either
+            link by reading it aloud. Same fix as the logo link in Header.
+          */}
+          <a className="flex pb-8 mb-8 border-b border-black" href={tel}>
             <PlayIcon className="mr-8 shrink-0" aria-hidden="true" />
+            <span className="sr-only">{settings?.a11y.call}</span>
             <span className="text-14">{settings?.phone}</span>
           </a>
-          <a
-            className="flex pb-8 mb-8 border-b border-black"
-            href={mailto}
-            aria-label={settings?.a11y.email}
-          >
+          <a className="flex pb-8 mb-8 border-b border-black" href={mailto}>
             <StopIcon className="mr-8 shrink-0" aria-hidden="true" />
+            <span className="sr-only">{settings?.a11y.email}</span>
             <span className="text-14">{settings?.email}</span>
           </a>
           <div className="flex mb-16 tablet:flex-col">

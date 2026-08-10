@@ -29,7 +29,9 @@ const dataset = process.env.SANITY_STUDIO_DATASET || "production";
 const apiVersion = process.env.SANITY_STUDIO_API_VERSION || "2026-08-10";
 
 if (!projectId) {
-  console.error("SANITY_STUDIO_PROJECT_ID is not set. Copy .env.example to .env.");
+  console.error(
+    "SANITY_STUDIO_PROJECT_ID is not set. Copy .env.example to .env."
+  );
   process.exit(1);
 }
 
@@ -53,7 +55,9 @@ const PAGE_FIELDS = [
 ];
 
 const blocksToText = (body) =>
-  (body ?? []).map((b) => b.children?.map((c) => c.text).join("") ?? "").join("\n\n");
+  (body ?? [])
+    .map((b) => b.children?.map((c) => c.text).join("") ?? "")
+    .join("\n\n");
 
 async function loadSanity(locale) {
   const data = await client.fetch(CONTENT_QUERY);
@@ -77,28 +81,51 @@ async function check() {
       for (const field of PAGE_FIELDS) {
         const a = cms.pages[key]?.[field];
         const b = local.pages[key]?.[field];
-        if (JSON.stringify(a) !== JSON.stringify(b)) report(`${locale}/${key}`, field, a, b);
+        if (JSON.stringify(a) !== JSON.stringify(b))
+          report(`${locale}/${key}`, field, a, b);
       }
       const a = blocksToText(cms.pages[key]?.body);
       const b = blocksToText(local.pages[key]?.body);
-      if (a !== b) report(`${locale}/${key}`, "body", a.slice(0, 60), b.slice(0, 60));
+      if (a !== b)
+        report(`${locale}/${key}`, "body", a.slice(0, 60), b.slice(0, 60));
     }
 
-    for (const field of ["phone", "email", "addressLine", "messageCta", "callCta"]) {
+    for (const field of [
+      "phone",
+      "email",
+      "addressLine",
+      "messageCta",
+      "callCta",
+    ]) {
       if (cms.settings[field] !== local.settings[field]) {
-        report(`${locale}/settings`, field, cms.settings[field], local.settings[field]);
+        report(
+          `${locale}/settings`,
+          field,
+          cms.settings[field],
+          local.settings[field]
+        );
       }
     }
     for (const key of Object.keys(local.settings.a11y)) {
       if (cms.settings.a11y[key] !== local.settings.a11y[key]) {
-        report(`${locale}/a11y`, key, cms.settings.a11y[key], local.settings.a11y[key]);
+        report(
+          `${locale}/a11y`,
+          key,
+          cms.settings.a11y[key],
+          local.settings.a11y[key]
+        );
       }
     }
     for (const [i, product] of local.products.entries()) {
       const other = cms.products[i];
       for (const field of ["name", "price", "alt"]) {
         if (product[field] !== other?.[field]) {
-          report(`${locale}/product[${i}]`, field, other?.[field], product[field]);
+          report(
+            `${locale}/product[${i}]`,
+            field,
+            other?.[field],
+            product[field]
+          );
         }
       }
     }
@@ -140,13 +167,17 @@ async function push(file) {
   }
   for (const doc of docs) {
     if (!doc._id || !doc._type) {
-      console.error(`Every document needs _id and _type. Offender: ${JSON.stringify(doc).slice(0, 80)}`);
+      console.error(
+        `Every document needs _id and _type. Offender: ${JSON.stringify(doc).slice(0, 80)}`
+      );
       return 1;
     }
     if (doc._id.includes(".")) {
       // Sanity's default public read grant is `_id in path("*")`, which matches
       // only dotless ids — a dotted id is invisible to anonymous readers.
-      console.error(`Document id "${doc._id}" contains a dot; use hyphens instead.`);
+      console.error(
+        `Document id "${doc._id}" contains a dot; use hyphens instead.`
+      );
       return 1;
     }
   }
@@ -158,10 +189,15 @@ async function push(file) {
     );
     return 1;
   }
-  const tx = docs.reduce((t, doc) => t.createOrReplace(doc), client.transaction());
+  const tx = docs.reduce(
+    (t, doc) => t.createOrReplace(doc),
+    client.transaction()
+  );
   await tx.commit();
   console.log(`Pushed ${docs.length} documents to ${projectId}/${dataset}.`);
-  console.log("Now run pnpm content:check — the bundled fallback has not moved.");
+  console.log(
+    "Now run pnpm content:check — the bundled fallback has not moved."
+  );
   return 0;
 }
 

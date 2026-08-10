@@ -7,13 +7,15 @@
 // running. Verified to actually execute and to actually fail on a breach
 // before being committed.
 
-const PORT = 7777;
+// Not the app's default 7777: a dev server on that port makes the gate die
+// with EADDRINUSE rather than report a budget breach.
+const PORT = 47771;
 const base = `http://localhost:${PORT}`;
 
 module.exports = {
   ci: {
     collect: {
-      startServerCommand: "NODE_ENV=production node ./server.js",
+      startServerCommand: `PORT=${PORT} NODE_ENV=production node ./server.js`,
       startServerReadyPattern: "App listening",
       startServerReadyTimeout: 60000,
       // Not just `/`. The audit's worst finding lived on /galeria and the

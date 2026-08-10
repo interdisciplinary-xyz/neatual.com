@@ -131,7 +131,9 @@ function buildProduct(product, index) {
     photoCount: product.photoCount,
     name: byLocale((_, code) => product.name[code]),
     price: byLocale((_, code) => PRODUCT_SHARED.price[code]),
-    descriptionLines: byLocale((_, code) => PRODUCT_SHARED.descriptionLines[code]),
+    descriptionLines: byLocale(
+      (_, code) => PRODUCT_SHARED.descriptionLines[code]
+    ),
     alt: byLocale((_, code) => product.alt[code]),
   };
 }
