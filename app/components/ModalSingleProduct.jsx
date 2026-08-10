@@ -88,12 +88,9 @@ export function ModalSingleProduct({ product, isOpen, onClose }) {
           <div className="flex flex-col flex-1">
             <div className="flex justify-between mb-4">
               <div>
-                <p
-                  id="modal-product-heading"
-                  className="uppercase font-bold"
-                >
+                <h2 id="modal-product-heading" className="uppercase font-bold">
                   {product.name}
-                </p>
+                </h2>
                 <p className="text-14 text-content">
                   {product.descriptionLines.map((line) => (
                     <span key={line} className="block">

@@ -65,9 +65,9 @@ export function ModalWithDetails({ isOpen, onClose, config }) {
           <CloseIcon aria-hidden="true" />
         </button>
         <article className="p-6 pt-14 text-16 overflow-y-auto h-full">
-          <p id="modal-details-heading" className="font-bold text-16 mb-6">
+          <h2 id="modal-details-heading" className="font-bold text-16 mb-6">
             {config.home.heading}
-          </p>
+          </h2>
           <p
             className="text-16 text-content mb-16"
             dangerouslySetInnerHTML={{ __html: config.home.fullDescription }}

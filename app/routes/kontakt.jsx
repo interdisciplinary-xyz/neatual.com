@@ -11,6 +11,8 @@ export default function ContactPage() {
 
   return (
     <article className="pt-48 h-full mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 tablet:pt-80 desktop:grid desktop:grid-cols-3 desktop:gap-36 desktop:h-full">
+      {/* The page had no heading of any level; the design has no visible title. */}
+      <h1 className="sr-only">{config.headings.contact}</h1>
       <DisplayMedia displays={["desktop"]}>
         <div>
           <LogoIcon style={{ width: 236, height: 292 }} />

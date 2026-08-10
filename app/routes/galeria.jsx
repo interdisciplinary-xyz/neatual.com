@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "@remix-run/react";
 import { getProducts, getPhotoAlt } from "../lib/products";
-import { getLocaleFromPath } from "../lib/locales";
+import { LOCALES, getLocaleFromPath } from "../lib/locales";
 import { ModalSingleProduct } from "../components/ModalSingleProduct";
 import { ProductImage } from "../components/ProductImage";
 
@@ -47,7 +47,13 @@ export default function GalleryPage() {
   };
 
   return (
-    <article className="flex h-full pb-12 pt-36 mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 desktop:pt-80 desktop:pb-0">
+    <article className="flex flex-col h-full pb-12 pt-36 mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 desktop:pt-80 desktop:pb-0">
+      {/*
+        Visually hidden to preserve the design, which has no visible page
+        title — but the page had no heading of any level at all, on any
+        locale. Matches the pattern already used on the homepage.
+      */}
+      <h1 className="sr-only">{LOCALES[locale].headings.gallery}</h1>
       <div className="w-full desktop:flex desktop:gap-8">
         <div className="w-full desktop:w-1/3">
           <ul className="grid grid-cols-2 gap-4 desktop:grid-cols-3 desktop:overflow-y-auto desktop:h-full">
@@ -112,9 +118,9 @@ export default function GalleryPage() {
             <div className="flex flex-col">
               <div className="flex justify-between mb-16">
                 <div>
-                  <p className="uppercase font-bold text-16">
+                  <h2 className="uppercase font-bold text-16">
                     {currentProduct.name}
-                  </p>
+                  </h2>
                   <p className="text-14 text-content">
                     {currentProduct.descriptionLines.map((line) => (
                       <span key={line} className="block">
