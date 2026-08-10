@@ -103,10 +103,10 @@ export function Header() {
         <div className="desktop:w-1/3">
           {/*
             No aria-label here. It used to read "Neatual - strona główna"
-            while the visible text read "netual.com", so the accessible name
+            while the visible text read "neatual.com", so the accessible name
             did not contain the visible label — a WCAG 2.5.3 (Label in Name)
             failure that Lighthouse flagged as label-content-name-mismatch,
-            and which breaks voice control ("click netual dot com").
+            and which breaks voice control ("click neatual dot com").
             The visible text now contributes to the name, and the sr-only
             span only appends the destination.
           */}
@@ -115,7 +115,7 @@ export function Header() {
             className="inline-flex items-center"
           >
             {showTextLogo && (
-              <span className="font-logo text-18 mr-auto">netual.com</span>
+              <span className="font-logo text-18 mr-auto">neatual.com</span>
             )}
             {showSvgLogo && (
               <LogoIcon

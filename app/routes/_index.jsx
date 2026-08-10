@@ -45,7 +45,7 @@ export default function HomePage() {
 
       <DisplayMedia displays={["tablet", "desktop"]}>
         <div className="desktop:px-36 desktop:w-2/3">
-          <p className="hidden font-logo text-38 mb-8 desktop:block">netual</p>
+          <p className="hidden font-logo text-38 mb-8 desktop:block">neatual</p>
           <p className="font-bold text-16 mb-6">{page?.heading}</p>
           <RichText className="text-16 text-content mb-16" value={page?.body} />
           <ul className="hidden tablet:flex tablet:flex-col desktop:hidden">
