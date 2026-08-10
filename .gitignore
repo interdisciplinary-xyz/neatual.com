@@ -7,3 +7,6 @@ dist
 .env
 .env.*
 !.env.example
+
+# Lighthouse CI reports (uploaded as a CI artifact instead)
+.lighthouseci

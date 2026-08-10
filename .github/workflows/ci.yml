@@ -30,12 +30,77 @@ jobs:
       # `<li role="button">` and click-only list items.
       - run: pnpm lint
 
+      - run: pnpm format:check
+
+      - run: pnpm test
+
       - run: pnpm build
 
       - name: Assert build artifacts exist
         run: |
           test -f build/server/index.js
           test -d build/client/assets
+
+  dependencies:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Gated against a recorded baseline rather than `--audit-level high`.
+      # The four open advisories are all React Router, all patched only in
+      # 7.18.0, which Remix 2 cannot use — so an absolute gate would be
+      # permanently red, get disabled, and leave nothing checking dependencies
+      # at all. This fails on anything NEW at any severity.
+      - run: pnpm audit:check
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Nothing would have caught a committed credential. The repo has no
+      # secrets today — no env reads outside NODE_ENV — but it grew a
+      # .env.example and a CMS token surface in the same week this was written.
+      - name: TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --results=verified --fail
+
+  performance:
+    name: Lighthouse budgets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Three URLs, not just `/`, and median-aggregated — see lighthouserc.cjs.
+      # Widening past the homepage is not cosmetic: it immediately surfaced two
+      # defects on /kontakt that the original audit missed by measuring only
+      # `/` and `/galeria`.
+      - run: pnpm test:performance
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 14
 
   smoke:
     name: Production boot smoke test

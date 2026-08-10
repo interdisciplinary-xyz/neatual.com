@@ -4,6 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@10.22.0",
   "scripts": {
+    "audit:check": "node scripts/check-audit-baseline.mjs",
     "build": "remix vite:build",
     "cache:clean": "rm -rf node_modules build dist .cache .sanity && echo 'Caches cleared. Run pnpm install to reinstall.'",
     "dev": "pnpm start:dev",
@@ -23,6 +24,7 @@
     "start:dev": "portless run --lan -- node --env-file-if-exists=.env ./server.js",
     "start:dev:raw": "node --env-file-if-exists=.env ./server.js",
     "test": "vitest run",
+    "test:performance": "lhci autorun",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -44,6 +46,7 @@
     ]
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@remix-run/dev": "^2.15.0",
     "@sanity/vision": "^4.22.0",
     "@testing-library/jest-dom": "^7.0.1",
