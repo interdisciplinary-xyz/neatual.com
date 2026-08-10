@@ -3,6 +3,15 @@ import { useLocation } from "@remix-run/react";
 import { products } from "../lib/products";
 import { getLocaleFromPath } from "../lib/locales";
 import { ModalSingleProduct } from "../components/ModalSingleProduct";
+import { ProductImage } from "../components/ProductImage";
+
+// Measured rendered widths, not guesses: the grid tile is ~115px in the 2-col
+// mobile grid, ~290px in the 2-col tablet grid, and ~112px in the 3-col
+// desktop column. The detail image only renders at >=1114px, in a ~285px
+// square. The photo strip is `w-20`, which is 50px at this root font-size.
+const TILE_SIZES = "(min-width: 1114px) 120px, (min-width: 608px) 290px, 120px";
+const DETAIL_SIZES = "285px";
+const STRIP_SIZES = "50px";
 
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
@@ -28,7 +37,7 @@ export default function GalleryPage() {
   const currentProduct = products[currentProductIndex];
   const currentPhoto =
     currentProduct.photos[currentPhotoIndex] || currentProduct.photos[0];
-  const photoUrl = currentPhoto?.url || currentProduct.thumbnailUrl;
+  const photoBase = currentPhoto?.base || currentProduct.thumbnailBase;
 
   const openProduct = (index) => {
     setCurrentProductIndex(index);
@@ -66,12 +75,19 @@ export default function GalleryPage() {
                       : `${item.name} - auswählen zum Anzeigen`
                 }
               >
-                <img
-                  src={item.thumbnailUrl}
+                {/*
+                  Was `index < 4 ? "eager" : "lazy"` with exactly 4 products,
+                  so nothing was ever lazy. Only the first tile is above the
+                  fold on every viewport, so only it is eager.
+                */}
+                <ProductImage
+                  base={item.thumbnailBase}
                   alt={item.alt}
                   width={400}
                   height={400}
-                  loading={index < 4 ? "eager" : "lazy"}
+                  sizes={TILE_SIZES}
+                  loading={index === 0 ? "eager" : "lazy"}
+                  fetchPriority={index === 0 ? "high" : undefined}
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full object-cover"
                 />
               </li>
@@ -81,11 +97,12 @@ export default function GalleryPage() {
         <div className="hidden desktop:flex w-2/3 px-36">
           <div className="w-1/2">
             <figure className="aspect-square overflow-hidden rounded-2xl mb-8">
-              <img
+              <ProductImage
+                base={photoBase}
                 alt={currentProduct.alt || currentProduct.name}
-                src={photoUrl}
                 width={600}
                 height={600}
+                sizes={DETAIL_SIZES}
                 className="w-full h-full object-cover"
               />
             </figure>
@@ -115,8 +132,8 @@ export default function GalleryPage() {
                     className="w-20 aspect-square overflow-hidden rounded-xl cursor-pointer"
                     onClick={() => setCurrentPhotoIndex(index)}
                   >
-                    <img
-                      src={image.url}
+                    <ProductImage
+                      base={image.base}
                       alt={
                         locale === "pl"
                           ? `${currentProduct.name} - zdjęcie ${index + 1}`
@@ -126,6 +143,7 @@ export default function GalleryPage() {
                       }
                       width={80}
                       height={80}
+                      sizes={STRIP_SIZES}
                       className="w-full h-full object-cover"
                     />
                   </li>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { CloseIcon } from "./icons";
+import { ProductImage } from "./ProductImage";
 
 export function ModalSingleProduct({ product, isOpen, onClose }) {
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
@@ -42,7 +43,7 @@ export function ModalSingleProduct({ product, isOpen, onClose }) {
 
   const currentPhoto =
     product.photos[currentPhotoIndex] || product.photos[0];
-  const photoUrl = currentPhoto?.url || product.thumbnailUrl;
+  const photoBase = currentPhoto?.base || product.thumbnailBase;
 
   return (
     <div
@@ -75,11 +76,12 @@ export function ModalSingleProduct({ product, isOpen, onClose }) {
         </button>
         <article className="flex flex-col h-full p-6 pt-20 text-16 overflow-y-auto">
           <figure className="aspect-square overflow-hidden rounded-2xl mb-8 shrink-0">
-            <img
+            <ProductImage
+              base={photoBase}
               alt={product.alt || product.name}
-              src={photoUrl}
               width={400}
               height={400}
+              sizes="90vw"
               className="w-full h-full object-cover"
             />
           </figure>
@@ -108,9 +110,12 @@ export function ModalSingleProduct({ product, isOpen, onClose }) {
                   className="w-20 aspect-[4/4.23] overflow-hidden rounded-xl cursor-pointer shrink-0"
                   onClick={() => setCurrentPhotoIndex(index)}
                 >
-                  <img
-                    src={image.url}
+                  <ProductImage
+                    base={image.base}
                     alt=""
+                    width={80}
+                    height={80}
+                    sizes="50px"
                     className="w-full h-full object-cover"
                   />
                 </li>

@@ -7,6 +7,7 @@
     "build": "remix vite:build",
     "cache:clean": "rm -rf node_modules build dist .cache .sanity && echo 'Caches cleared. Run pnpm install to reinstall.'",
     "dev": "pnpm start:dev",
+    "images:generate": "node scripts/generate-gallery-images.mjs",
     "lint": "eslint ./app",
     "lint:fix": "eslint ./app --fix",
     "reboot": "pnpm cache:clean && pnpm install && pnpm start:dev",
@@ -40,6 +41,7 @@
     "@sanity/vision": "^4.22.0",
     "eslint": "^8.57.0",
     "sanity": "^4.22.0",
+    "sharp": "^0.35.3",
     "styled-components": "^6.5.1",
     "tailwindcss": "^3.4.15",
     "vite": "^5.4.11"
