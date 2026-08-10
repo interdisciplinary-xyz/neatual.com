@@ -57,7 +57,8 @@ function getLocalizedPath(pathname, lang) {
 }
 
 function getRouteName(pathname) {
-  if (pathname === "/" || pathname === "/en" || pathname === "/de") return "HOME";
+  if (pathname === "/" || pathname === "/en" || pathname === "/de")
+    return "HOME";
   if (
     pathname.includes("/galeria") ||
     pathname.includes("/gallery") ||
@@ -117,10 +118,15 @@ export function Header() {
               <span className="font-logo text-18 mr-auto">netual.com</span>
             )}
             {showSvgLogo && (
-              <LogoIcon className="mr-auto tablet:h-auto tablet:w-36 w-32" aria-hidden="true" />
+              <LogoIcon
+                className="mr-auto tablet:h-auto tablet:w-36 w-32"
+                aria-hidden="true"
+              />
             )}
             <span className="sr-only">
-              {showSvgLogo ? `Neatual — ${settings?.a11y.homeLink ?? ""}` : `— ${settings?.a11y.homeLink ?? ""}`}
+              {showSvgLogo
+                ? `Neatual — ${settings?.a11y.homeLink ?? ""}`
+                : `— ${settings?.a11y.homeLink ?? ""}`}
             </span>
           </Link>
         </div>
@@ -149,7 +155,10 @@ export function Header() {
               </li>
             </ul>
           )}
-          <nav className="desktop:w-1/3 flex ml-auto" aria-label={settings?.a11y.langNav}>
+          <nav
+            className="desktop:w-1/3 flex ml-auto"
+            aria-label={settings?.a11y.langNav}
+          >
             {/*
               These links were 17x12, 18x12 and 12x12 px — under the WCAG
               2.5.8 minimum of 24x24 — because they carried no `text-*` class
@@ -172,7 +181,10 @@ export function Header() {
                     {lang.label}
                   </Link>
                   {index < LANGUAGES.length - 1 && (
-                    <span aria-hidden="true" className="text-14 text-gray-accessible">
+                    <span
+                      aria-hidden="true"
+                      className="text-14 text-gray-accessible"
+                    >
                       |
                     </span>
                   )}

@@ -23,7 +23,9 @@ export default defineConfig({
     // Site settings must stay a singleton — no "create new" action for it.
     actions: (prev, { schemaType }) =>
       schemaType === "siteSettings"
-        ? prev.filter(({ action }) => action !== "duplicate" && action !== "delete")
+        ? prev.filter(
+            ({ action }) => action !== "duplicate" && action !== "delete"
+          )
         : prev,
   },
 });

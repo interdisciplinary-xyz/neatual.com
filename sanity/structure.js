@@ -7,7 +7,9 @@ export const structure = (S) =>
       S.listItem()
         .title("Site settings")
         .id("siteSettings")
-        .child(S.document().schemaType("siteSettings").documentId("siteSettings")),
+        .child(
+          S.document().schemaType("siteSettings").documentId("siteSettings")
+        ),
       S.divider(),
       S.documentTypeListItem("page").title("Pages"),
       S.listItem()

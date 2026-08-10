@@ -9,7 +9,12 @@ export const LOCALE_LABELS = {
 // Field-level localization: every translatable field becomes an object with one
 // sub-field per locale. LOCALE_CODES is the same list the sitemap and hreflang
 // tags read from, so adding a language is a one-line change in app/lib/seo.js.
-export function localizedField({ name, title, of = { type: "string" }, description }) {
+export function localizedField({
+  name,
+  title,
+  of = { type: "string" },
+  description,
+}) {
   return {
     name,
     title,

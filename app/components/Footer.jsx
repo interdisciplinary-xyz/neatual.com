@@ -9,7 +9,10 @@ export function Footer() {
 
   return (
     <footer className="fixed bottom-0 left-0 py-8 w-full bg-background tablet:pb-20 z-10">
-      <nav className="tablet:mx-auto tablet:max-w-lg mobile:max-w-[260px] tablet:max-w-[608px] mx-auto px-4" aria-label={content?.settings.a11y.mainNav}>
+      <nav
+        className="tablet:mx-auto tablet:max-w-lg mobile:max-w-[260px] tablet:max-w-[608px] mx-auto px-4"
+        aria-label={content?.settings.a11y.mainNav}
+      >
         <ul className="flex mobile:justify-around">
           {navItems.map((item) => {
             const itemPath = item.link.replace(/\/$/, "") || "/";
@@ -20,7 +23,9 @@ export function Footer() {
                 <Link
                   to={item.link}
                   className={`text-center uppercase text-14 px-2 pb-2 hover:text-black ${
-                    isActive ? "text-black border-b-2 border-black" : "text-gray-accessible"
+                    isActive
+                      ? "text-black border-b-2 border-black"
+                      : "text-gray-accessible"
                   }`}
                   aria-current={isActive ? "page" : undefined}
                 >

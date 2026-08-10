@@ -54,8 +54,7 @@ function securityHeaders(req, res, next) {
   // breaks every other local project on the machine, and is not undone by
   // removing the header. Behind a proxy (Vercel, Railway, nginx) the TLS
   // terminates upstream, so trust the forwarded header there.
-  const isSecure =
-    req.secure || req.headers["x-forwarded-proto"] === "https";
+  const isSecure = req.secure || req.headers["x-forwarded-proto"] === "https";
   if (isProduction && isSecure) {
     res.setHeader(
       "Strict-Transport-Security",

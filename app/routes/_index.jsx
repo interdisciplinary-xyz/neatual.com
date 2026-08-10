@@ -59,10 +59,7 @@ export default function HomePage() {
               </a>
             </li>
             <li>
-              <a
-                className="flex"
-                href={`mailto:${settings?.email ?? ""}`}
-              >
+              <a className="flex" href={`mailto:${settings?.email ?? ""}`}>
                 <StopIcon className="mr-8 shrink-0" aria-hidden="true" />
                 <span className="text-14">{settings?.email}</span>
               </a>

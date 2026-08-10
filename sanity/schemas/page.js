@@ -48,11 +48,16 @@ export const page = {
       title: "Meta description",
       of: { type: "text", rows: 3 },
     }),
-    localizedField({ name: "heading", title: "Page heading", of: { type: "text", rows: 3 } }),
+    localizedField({
+      name: "heading",
+      title: "Page heading",
+      of: { type: "text", rows: 3 },
+    }),
     localizedField({
       name: "shortDescription",
       title: "Short description",
-      description: "The collapsed teaser shown before the full text is expanded.",
+      description:
+        "The collapsed teaser shown before the full text is expanded.",
       of: { type: "text", rows: 4 },
     }),
     localizedField({

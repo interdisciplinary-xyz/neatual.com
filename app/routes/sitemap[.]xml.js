@@ -8,9 +8,11 @@ import {
 import { getContent } from "../lib/content.server";
 
 function alternateLinks(paths, page) {
-  const hrefFor = (code) => `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
+  const hrefFor = (code) =>
+    `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
   const links = LOCALE_CODES.map(
-    (code) => `    <xhtml:link rel="alternate" hreflang="${code}" href="${hrefFor(code)}"/>`
+    (code) =>
+      `    <xhtml:link rel="alternate" hreflang="${code}" href="${hrefFor(code)}"/>`
   );
   links.push(
     `    <xhtml:link rel="alternate" hreflang="x-default" href="${hrefFor(DEFAULT_LOCALE)}"/>`

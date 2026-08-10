@@ -1,0 +1,16 @@
+build
+node_modules
+pnpm-lock.yaml
+
+# Generated or binary asset trees.
+public/gallery
+public/photos
+art
+.sanity-seed.ndjson
+
+# Vendored agent skills and commands — third-party content, not our source.
+.claude
+
+# The audits are hand-formatted: wide comparison tables and blockquote
+# verdicts that Prettier's markdown printer would rewrap and mangle.
+docs

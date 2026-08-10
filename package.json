@@ -7,6 +7,8 @@
     "build": "remix vite:build",
     "cache:clean": "rm -rf node_modules build dist .cache .sanity && echo 'Caches cleared. Run pnpm install to reinstall.'",
     "dev": "pnpm start:dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "images:generate": "node scripts/generate-gallery-images.mjs",
     "lint": "eslint ./app",
     "lint:fix": "eslint ./app --fix",

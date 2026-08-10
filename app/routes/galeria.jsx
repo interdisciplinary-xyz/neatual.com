@@ -110,7 +110,9 @@ export default function GalleryPage() {
                 <button
                   type="button"
                   onClick={() => openProduct(index)}
-                  aria-label={fillTemplate(a11y?.selectProduct, { name: item.name })}
+                  aria-label={fillTemplate(a11y?.selectProduct, {
+                    name: item.name,
+                  })}
                   aria-pressed={currentProductIndex === index}
                   className="absolute inset-0 w-full h-full cursor-pointer rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 />
@@ -125,69 +127,71 @@ export default function GalleryPage() {
           turn any such gap into a render crash rather than a missing panel.
         */}
         {currentProduct && (
-        <div className="hidden desktop:flex w-2/3 px-36">
-          <div className="w-1/2">
-            <figure className="aspect-square overflow-hidden rounded-2xl mb-8">
-              <ProductImage
-                base={photoBase}
-                alt={currentProduct.alt || currentProduct.name}
-                width={600}
-                height={600}
-                sizes={DETAIL_SIZES}
-                className="w-full h-full object-cover"
-              />
-            </figure>
-          </div>
-          <div className="w-1/2 pl-16">
-            <div className="flex flex-col">
-              <div className="flex justify-between mb-16">
-                <div>
-                  <h2 className="uppercase font-bold text-16">
-                    {currentProduct.name}
-                  </h2>
-                  <p className="text-14 text-content">
-                    {currentProduct.descriptionLines.map((line) => (
-                      <span key={line} className="block">
-                        {line}
-                      </span>
-                    ))}
-                  </p>
+          <div className="hidden desktop:flex w-2/3 px-36">
+            <div className="w-1/2">
+              <figure className="aspect-square overflow-hidden rounded-2xl mb-8">
+                <ProductImage
+                  base={photoBase}
+                  alt={currentProduct.alt || currentProduct.name}
+                  width={600}
+                  height={600}
+                  sizes={DETAIL_SIZES}
+                  className="w-full h-full object-cover"
+                />
+              </figure>
+            </div>
+            <div className="w-1/2 pl-16">
+              <div className="flex flex-col">
+                <div className="flex justify-between mb-16">
+                  <div>
+                    <h2 className="uppercase font-bold text-16">
+                      {currentProduct.name}
+                    </h2>
+                    <p className="text-14 text-content">
+                      {currentProduct.descriptionLines.map((line) => (
+                        <span key={line} className="block">
+                          {line}
+                        </span>
+                      ))}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="font-bold text-16">{currentProduct.price}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-bold text-16">{currentProduct.price}</p>
-                </div>
-              </div>
-              <ul className="flex flex-wrap gap-2">
-                {/*
+                <ul className="flex flex-wrap gap-2">
+                  {/*
                   The photo strip was click-only: onClick on a bare <li> with
                   no role, tabIndex or key handler, so a keyboard user could
                   not switch between a product's four photos anywhere on the
                   site.
                 */}
-                {currentProduct.photos.map((image, index) => (
-                  <li key={index} className="w-20 aspect-square">
-                    <button
-                      type="button"
-                      onClick={() => setCurrentPhotoIndex(index)}
-                      aria-label={fillTemplate(a11y?.selectPhoto, { n: index + 1 })}
-                      aria-pressed={currentPhotoIndex === index}
-                      className="block w-full h-full overflow-hidden rounded-xl cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                    >
-                      <ProductImage
-                        base={image.base}
-                        alt={photoAltFor(index + 1)}
-                        width={80}
-                        height={80}
-                        sizes={STRIP_SIZES}
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+                  {currentProduct.photos.map((image, index) => (
+                    <li key={index} className="w-20 aspect-square">
+                      <button
+                        type="button"
+                        onClick={() => setCurrentPhotoIndex(index)}
+                        aria-label={fillTemplate(a11y?.selectPhoto, {
+                          n: index + 1,
+                        })}
+                        aria-pressed={currentPhotoIndex === index}
+                        className="block w-full h-full overflow-hidden rounded-xl cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                      >
+                        <ProductImage
+                          base={image.base}
+                          alt={photoAltFor(index + 1)}
+                          width={80}
+                          height={80}
+                          sizes={STRIP_SIZES}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
         )}
       </div>
       <ModalSingleProduct

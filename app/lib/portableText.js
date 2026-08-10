@@ -1,5 +1,8 @@
 /** Collapses the indentation of the template literals in locales.js. */
-export const tidy = (text) => String(text ?? "").replace(/\s+/g, " ").trim();
+export const tidy = (text) =>
+  String(text ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
 
 /**
  * Converts the `<br><br>`-separated HTML copy in locales.js into Portable Text.
@@ -19,6 +22,8 @@ export function htmlToBlocks(html, keyPrefix) {
       _key: `${keyPrefix}-${index}`,
       style: "normal",
       markDefs: [],
-      children: [{ _type: "span", _key: `${keyPrefix}-${index}-0`, text, marks: [] }],
+      children: [
+        { _type: "span", _key: `${keyPrefix}-${index}-0`, text, marks: [] },
+      ],
     }));
 }
