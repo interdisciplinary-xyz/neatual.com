@@ -10,8 +10,7 @@ export const LOCALES = {
       { label: "Kontakt", link: "/kontakt" },
     ],
     home: {
-      heading:
-        "Wieszamy tapety w całej Polsce — fototapety, wzory i tekstury.",
+      heading: "Wieszamy tapety w całej Polsce — fototapety, wzory i tekstury.",
       shortDescription:
         "Tapetę wybiera klient albo jego projektant — my zajmujemy się montażem. Wieszamy fototapety, wzory i tekstury w łazienkach, sypialniach, przy basenie i w przestrzeniach komercyjnych.",
       fullDescription: `Tapetę wybiera klient albo jego projektant. My zajmujemy się montażem — i tylko montażem.<br><br>

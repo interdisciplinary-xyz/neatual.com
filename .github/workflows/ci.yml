@@ -4,14 +4,19 @@ name: CI
 # production build, and nothing ever booted the built server. Three findings in
 # docs/audits/2026-08-10-security-dependency-audit.md were visible in `pnpm
 # build` output or in the booted app, and no automated run ever looked.
+#
+# `scope/**` is deliberately absent from the push triggers. Those branches
+# always reach a release through a PR, and listing them here fired both the
+# push and the pull_request event for the same commit — every job ran twice and
+# PR #2 showed 6 checks for 3 failures. A concurrency group cannot fix that on
+# its own: the two events produce different group keys, so neither cancels the
+# other. Scope branches are still covered, once, by the pull_request trigger.
 on:
   push:
-    branches: [master, "scope/**", "release/**"]
+    branches: [master, "release/**"]
   pull_request:
 
-# A branch with an open PR fired both the push and the pull_request event, so
-# every job ran twice and PR #2 showed 6 failing checks for 3 failures. Runs on
-# the same ref now supersede each other.
+# Supersede in-flight runs when a branch is pushed again mid-run.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
@@ -148,7 +153,7 @@ jobs:
         run: |
           set -e
           for path in / /galeria /kontakt /en /en/gallery /en/contact /de /de/galerie /de/kontakte /sitemap.xml /robots.txt; do
-            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:7878$path")
+            code=$(curl -s -o /dev/null --retry 3 --retry-connrefused --retry-delay 1 -w '%{http_code}' "http://localhost:7878$path")
             echo "$code  $path"
             [ "$code" = "200" ] || exit 1
           done
@@ -167,11 +172,17 @@ jobs:
           echo "$headers" | grep -qi '^x-powered-by:' && { echo 'x-powered-by leaked'; exit 1; }
           exit 0
 
+      # `curl -sf --retry` and a separate exit-code check, so a dropped
+      # connection is reported as a failed request rather than silently
+      # counting as "this page has no h1" — which is how /de failed this step
+      # once while serving a correct h1 on 40/40 requests locally.
       - name: Assert every page has exactly one h1
         run: |
           set -e
           for path in / /galeria /kontakt /en /en/gallery /en/contact /de /de/galerie /de/kontakte; do
-            n=$(curl -s "http://localhost:7878$path" | grep -o '<h1' | wc -l | tr -d ' ')
+            body=$(curl -sf --retry 3 --retry-connrefused --retry-delay 1 "http://localhost:7878$path") \
+              || { echo "request failed: $path"; exit 1; }
+            n=$(printf '%s' "$body" | grep -o '<h1' | wc -l | tr -d ' ')
             echo "h1=$n  $path"
-            [ "$n" = "1" ] || exit 1
+            [ "$n" = "1" ] || { echo "expected exactly one h1 on $path"; exit 1; }
           done
