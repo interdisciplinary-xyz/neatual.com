@@ -17,7 +17,7 @@ import {
   formatAddress,
 } from "./inlineCopy.js";
 
-const CONTENT_QUERY = `{
+export const CONTENT_QUERY = `{
   "pages": *[_type == "page"]{
     pageKey, path, navLabel, srHeading, metaTitle, metaDescription,
     heading, shortDescription, body
@@ -40,7 +40,7 @@ function warnOnce(reason) {
 }
 
 /** Shape produced from app/lib/locales.js, used when Sanity can't answer. */
-function fromLocales(locale) {
+export function fromLocales(locale) {
   const config = LOCALES[locale] ?? LOCALES[DEFAULT_LOCALE];
 
   const pages = Object.fromEntries(
@@ -113,7 +113,7 @@ function fromLocales(locale) {
 }
 
 /** Same shape, resolved from a Sanity response. */
-function fromSanity(data, locale) {
+export function fromSanity(data, locale) {
   const pages = Object.fromEntries(
     data.pages.map((page) => [
       page.pageKey,

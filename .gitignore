@@ -15,3 +15,7 @@ dist
 # masters would be publicly downloadable and shipped on every deploy. The
 # masters that the gallery is built from live in art/gallery-originals/.
 public/photos
+
+# Working file from `pnpm content:pull`. Sanity is the source of truth;
+# a stale copy checked in invites someone pushing week-old text.
+content.json
