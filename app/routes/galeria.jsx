@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useLocation } from "@remix-run/react";
-import { products } from "../lib/products";
+import { getProducts, getPhotoAlt } from "../lib/products";
 import { getLocaleFromPath } from "../lib/locales";
 import { ModalSingleProduct } from "../components/ModalSingleProduct";
 import { ProductImage } from "../components/ProductImage";
@@ -34,6 +34,7 @@ export default function GalleryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
+  const products = useMemo(() => getProducts(locale), [locale]);
   const currentProduct = products[currentProductIndex];
   const currentPhoto =
     currentProduct.photos[currentPhotoIndex] || currentProduct.photos[0];
@@ -114,12 +115,13 @@ export default function GalleryPage() {
                   <p className="uppercase font-bold text-16">
                     {currentProduct.name}
                   </p>
-                  <p
-                    className="text-14 text-content"
-                    dangerouslySetInnerHTML={{
-                      __html: currentProduct.description,
-                    }}
-                  />
+                  <p className="text-14 text-content">
+                    {currentProduct.descriptionLines.map((line) => (
+                      <span key={line} className="block">
+                        {line}
+                      </span>
+                    ))}
+                  </p>
                 </div>
                 <div>
                   <p className="font-bold text-16">{currentProduct.price}</p>
@@ -134,13 +136,7 @@ export default function GalleryPage() {
                   >
                     <ProductImage
                       base={image.base}
-                      alt={
-                        locale === "pl"
-                          ? `${currentProduct.name} - zdjęcie ${index + 1}`
-                          : locale === "en"
-                            ? `${currentProduct.name} - photo ${index + 1}`
-                            : `${currentProduct.name} - Foto ${index + 1}`
-                      }
+                      alt={getPhotoAlt(locale, currentProduct.name, index + 1)}
                       width={80}
                       height={80}
                       sizes={STRIP_SIZES}

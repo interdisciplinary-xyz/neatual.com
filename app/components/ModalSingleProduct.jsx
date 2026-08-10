@@ -94,10 +94,13 @@ export function ModalSingleProduct({ product, isOpen, onClose }) {
                 >
                   {product.name}
                 </p>
-                <p
-                  className="text-14 text-content"
-                  dangerouslySetInnerHTML={{ __html: product.description }}
-                />
+                <p className="text-14 text-content">
+                  {product.descriptionLines.map((line) => (
+                    <span key={line} className="block">
+                      {line}
+                    </span>
+                  ))}
+                </p>
               </div>
               <div>
                 <p className="font-bold">{product.price}</p>
