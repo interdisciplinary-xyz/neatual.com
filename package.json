@@ -2,26 +2,72 @@
   "name": "neatual.com",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.22.0",
   "scripts": {
-    "dev": "node ./server.js",
+    "audit:check": "node scripts/check-audit-baseline.mjs",
     "build": "remix vite:build",
-    "start": "cross-env NODE_ENV=production node ./server.js",
-    "lint": "eslint ./app"
+    "cache:clean": "rm -rf node_modules build dist .cache .sanity && echo 'Caches cleared. Run pnpm install to reinstall.'",
+    "content:check": "node --env-file-if-exists=.env scripts/content-sync.mjs --check",
+    "content:pull": "node --env-file-if-exists=.env scripts/content-sync.mjs --pull",
+    "content:push": "node --env-file-if-exists=.env scripts/content-sync.mjs --push",
+    "dev": "pnpm start:dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "images:generate": "node scripts/generate-gallery-images.mjs",
+    "lint": "eslint ./app",
+    "lint:fix": "eslint ./app --fix",
+    "og:generate": "node scripts/generate-og-image.mjs",
+    "reboot": "pnpm cache:clean && pnpm install && pnpm start:dev",
+    "sanity:build": "sanity build",
+    "sanity:deploy": "sanity deploy",
+    "sanity:dev": "sanity dev",
+    "seed:sanity": "node --env-file-if-exists=.env scripts/seed-sanity.mjs",
+    "seed:sanity:import": "node --env-file-if-exists=.env scripts/seed-sanity.mjs --ndjson > .sanity-seed.ndjson && sanity dataset import .sanity-seed.ndjson production --replace && rm -f .sanity-seed.ndjson",
+    "start": "cross-env NODE_ENV=production node --env-file-if-exists=.env ./server.js",
+    "start:dev": "portless run --lan -- node --env-file-if-exists=.env ./server.js",
+    "start:dev:raw": "node --env-file-if-exists=.env ./server.js",
+    "test": "vitest run",
+    "test:performance": "lhci autorun",
+    "test:watch": "vitest"
   },
   "dependencies": {
+    "@portabletext/react": "^6.2.0",
     "@remix-run/express": "^2.15.0",
     "@remix-run/node": "^2.15.0",
     "@remix-run/react": "^2.15.0",
+    "@sanity/client": "^7.26.2",
+    "compression": "^1.8.1",
+    "cross-env": "^7.0.3",
+    "express": "^4.21.0",
     "isbot": "^4.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
     "@remix-run/dev": "^2.15.0",
-    "cross-env": "^7.0.3",
+    "@sanity/vision": "^4.22.0",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.3",
+    "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^8.57.0",
-    "express": "^4.21.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
+    "sanity": "^4.22.0",
+    "sharp": "^0.35.3",
+    "styled-components": "^6.5.1",
     "tailwindcss": "^3.4.15",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vitest": "^2.1.9",
+    "vitest-axe": "^0.1.0"
   }
 }

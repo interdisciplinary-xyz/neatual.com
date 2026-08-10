@@ -10,5 +10,9 @@ export function Button({ href, children }) {
     );
   }
 
-  return <button type="button" className={className}>{children}</button>;
+  return (
+    <button type="button" className={className}>
+      {children}
+    </button>
+  );
 }

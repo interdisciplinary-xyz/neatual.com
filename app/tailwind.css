@@ -2,15 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  62.5% rather than a hard 10px. Both give 1rem = 10px for a visitor on the
+  default 16px, so the whole `fontSize` scale in tailwind.config.js is
+  unchanged — but a percentage scales with the browser font-size preference,
+  where `10px` silently discarded it. See §3.3 of
+  docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md.
+*/
 html {
-  font-size: 10px;
+  font-size: 62.5%;
   background: #ededed;
 }
 
+/*
+  An explicit 14px base. Everything designed here carries a `text-*` class, so
+  this changes no existing element — it only stops unclassed text inheriting
+  the 10px root, which had put 55% of the gallery's text under the legibility
+  threshold. Verified: the only nodes that were inheriting it are the skip
+  link and the sr-only headings.
+*/
 body {
   display: flex;
   align-items: stretch;
   font-family: "Roboto", sans-serif;
+  font-size: 1.4rem;
   color: black;
   min-height: 100vh;
   width: 100%;
@@ -24,6 +39,7 @@ body {
   background: black;
   color: white;
   border-radius: 0.25rem;
+  font-size: 1.6rem;
   font-weight: 700;
 }
 .skip-link:focus {
