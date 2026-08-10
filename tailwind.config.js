@@ -6,7 +6,10 @@ export default {
     colors: {
       black: "#000000",
       content: "#393939",
-      gray: "#858585",
+      // `gray: #858585` used to live here. It is 3.15:1 on the #EDEDED page
+      // background — below WCAG AA — and was unused, sitting next to the
+      // replacement someone had already had to add. Removing it also restores
+      // Tailwind's default gray-* scale, which nothing currently uses.
       "gray-accessible": "#5c5c5c",
       white: "#FFFFFF",
       background: "#EDEDED",
