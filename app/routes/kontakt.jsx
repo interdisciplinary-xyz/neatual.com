@@ -15,7 +15,7 @@ export default function ContactPage() {
       <h1 className="sr-only">{config.headings.contact}</h1>
       <DisplayMedia displays={["desktop"]}>
         <div>
-          <LogoIcon style={{ width: 236, height: 292 }} />
+          <LogoIcon style={{ width: 236, height: 292 }} aria-hidden="true" />
         </div>
       </DisplayMedia>
       <div className="flex flex-col h-full max-w-lg mx-auto tablet:justify-center desktop:block desktop:max-w-none desktop:mx-0">

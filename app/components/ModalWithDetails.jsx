@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { CloseIcon } from "./icons";
+import { useModalBehaviour } from "./useModalBehaviour";
 
 export function ModalWithDetails({ isOpen, onClose, config }) {
   const [dimensions, setDimensions] = useState({ width: "95%", height: "90%" });
+  const containerRef = useModalBehaviour(isOpen, onClose);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       setDimensions({
@@ -11,27 +14,6 @@ export function ModalWithDetails({ isOpen, onClose, config }) {
       });
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    const handleEscape = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    if (isOpen) {
-      document.addEventListener("keydown", handleEscape);
-      return () => document.removeEventListener("keydown", handleEscape);
-    }
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -48,6 +30,7 @@ export function ModalWithDetails({ isOpen, onClose, config }) {
         aria-hidden="true"
       />
       <div
+        ref={containerRef}
         className="relative bg-white rounded-2xl shadow-lg overflow-hidden"
         style={{
           width: dimensions.width,
@@ -58,9 +41,8 @@ export function ModalWithDetails({ isOpen, onClose, config }) {
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-6 left-6 z-10 cursor-pointer"
-          aria-label="Close"
-          autoFocus
+          className="absolute top-6 left-6 z-10 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+          aria-label={config.a11y.close}
         >
           <CloseIcon aria-hidden="true" />
         </button>

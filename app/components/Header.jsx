@@ -98,9 +98,18 @@ export function Header() {
     <header className="fixed top-0 left-0 pt-12 w-full tablet:bg-background tablet:pt-20 z-10">
       <div className="flex justify-between mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4">
         <div className="desktop:w-1/3">
+          {/*
+            No aria-label here. It used to read "Neatual - strona główna"
+            while the visible text read "netual.com", so the accessible name
+            did not contain the visible label — a WCAG 2.5.3 (Label in Name)
+            failure that Lighthouse flagged as label-content-name-mismatch,
+            and which breaks voice control ("click netual dot com").
+            The visible text now contributes to the name, and the sr-only
+            span only appends the destination.
+          */}
           <Link
             to={locale === "pl" ? "/" : `/${locale}`}
-            aria-label={locale === "pl" ? "Neatual - strona główna" : locale === "en" ? "Neatual - home" : "Neatual - Startseite"}
+            className="inline-flex items-center"
           >
             {showTextLogo && (
               <span className="font-logo text-18 mr-auto">netual.com</span>
@@ -108,6 +117,9 @@ export function Header() {
             {showSvgLogo && (
               <LogoIcon className="mr-auto tablet:h-auto tablet:w-36 w-32" aria-hidden="true" />
             )}
+            <span className="sr-only">
+              {showSvgLogo ? `Neatual — ${config.a11y.homeLink}` : `— ${config.a11y.homeLink}`}
+            </span>
           </Link>
         </div>
         <div className="desktop:w-2/3 desktop:flex desktop:px-36">
@@ -136,16 +148,32 @@ export function Header() {
             </ul>
           )}
           <nav className="desktop:w-1/3 flex ml-auto" aria-label={locale === "pl" ? "Wybierz język" : locale === "en" ? "Language selector" : "Sprachauswahl"}>
-            <ul className="flex ml-auto gap-1">
+            {/*
+              These links were 17x12, 18x12 and 12x12 px — under the WCAG
+              2.5.8 minimum of 24x24 — because they carried no `text-*` class
+              and so inherited the 10px root size. They are the only way to
+              change language on the site. The "|" separators used to sit
+              *inside* the anchors, making them part of the link text and
+              target; they are now aria-hidden siblings.
+            */}
+            <ul className="flex ml-auto items-center">
               {LANGUAGES.map((lang, index) => (
-                <li key={lang.code}>
+                <li key={lang.code} className="flex items-center">
                   <Link
                     to={getLocalizedPath(pathname, lang.code)}
-                    className={locale === lang.code ? "font-black" : ""}
+                    hrefLang={lang.code}
+                    aria-current={locale === lang.code ? "true" : undefined}
+                    className={`text-14 inline-flex items-center justify-center min-w-[24px] min-h-[24px] px-1 ${
+                      locale === lang.code ? "font-black" : ""
+                    }`}
                   >
                     {lang.label}
-                    {index < LANGUAGES.length - 1 ? " | " : ""}
                   </Link>
+                  {index < LANGUAGES.length - 1 && (
+                    <span aria-hidden="true" className="text-14 text-gray-accessible">
+                      |
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>

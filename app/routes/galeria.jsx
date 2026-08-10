@@ -34,6 +34,7 @@ export default function GalleryPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const isMobile = useIsMobile();
 
+  const config = LOCALES[locale];
   const products = useMemo(() => getProducts(locale), [locale]);
   const currentProduct = products[currentProductIndex];
   const currentPhoto =
@@ -53,34 +54,25 @@ export default function GalleryPage() {
         title — but the page had no heading of any level at all, on any
         locale. Matches the pattern already used on the homepage.
       */}
-      <h1 className="sr-only">{LOCALES[locale].headings.gallery}</h1>
+      <h1 className="sr-only">{config.headings.gallery}</h1>
       <div className="w-full desktop:flex desktop:gap-8">
         <div className="w-full desktop:w-1/3">
           <ul className="grid grid-cols-2 gap-4 desktop:grid-cols-3 desktop:overflow-y-auto desktop:h-full">
+            {/*
+              Each tile was `<li role="button" tabIndex={0}>`, which Lighthouse
+              failed twice over: aria-allowed-role (button is not a permitted
+              role on <li>) and list (a <ul> whose children are not list
+              items). A real <button> inside the <li> restores list semantics
+              and gets keyboard activation for free.
+            */}
             {products.map((item, index) => (
               <li
                 key={index}
-                className={`aspect-square overflow-hidden cursor-pointer rounded-2xl border-2 relative ${
+                className={`aspect-square overflow-hidden rounded-2xl border-2 relative ${
                   currentProductIndex === index
                     ? "border-black"
                     : "border-transparent"
                 }`}
-                onClick={() => openProduct(index)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    openProduct(index);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={
-                  locale === "pl"
-                    ? `${item.name} - wybierz aby zobaczyć`
-                    : locale === "en"
-                      ? `${item.name} - select to view`
-                      : `${item.name} - auswählen zum Anzeigen`
-                }
               >
                 {/*
                   Was `index < 4 ? "eager" : "lazy"` with exactly 4 products,
@@ -96,6 +88,13 @@ export default function GalleryPage() {
                   loading={index === 0 ? "eager" : "lazy"}
                   fetchPriority={index === 0 ? "high" : undefined}
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => openProduct(index)}
+                  aria-label={config.a11y.selectProduct(item.name)}
+                  aria-pressed={currentProductIndex === index}
+                  className="absolute inset-0 w-full h-full cursor-pointer rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 />
               </li>
             ))}
@@ -134,20 +133,30 @@ export default function GalleryPage() {
                 </div>
               </div>
               <ul className="flex flex-wrap gap-2">
+                {/*
+                  The photo strip was click-only: onClick on a bare <li> with
+                  no role, tabIndex or key handler, so a keyboard user could
+                  not switch between a product's four photos anywhere on the
+                  site.
+                */}
                 {currentProduct.photos.map((image, index) => (
-                  <li
-                    key={index}
-                    className="w-20 aspect-square overflow-hidden rounded-xl cursor-pointer"
-                    onClick={() => setCurrentPhotoIndex(index)}
-                  >
-                    <ProductImage
-                      base={image.base}
-                      alt={getPhotoAlt(locale, currentProduct.name, index + 1)}
-                      width={80}
-                      height={80}
-                      sizes={STRIP_SIZES}
-                      className="w-full h-full object-cover"
-                    />
+                  <li key={index} className="w-20 aspect-square">
+                    <button
+                      type="button"
+                      onClick={() => setCurrentPhotoIndex(index)}
+                      aria-label={config.a11y.selectPhoto(index + 1)}
+                      aria-pressed={currentPhotoIndex === index}
+                      className="block w-full h-full overflow-hidden rounded-xl cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                    >
+                      <ProductImage
+                        base={image.base}
+                        alt={getPhotoAlt(locale, currentProduct.name, index + 1)}
+                        width={80}
+                        height={80}
+                        sizes={STRIP_SIZES}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -159,6 +168,9 @@ export default function GalleryPage() {
         product={currentProduct}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
+        closeLabel={config.a11y.close}
+        selectPhotoLabel={config.a11y.selectPhoto}
+        photoAlt={(i) => getPhotoAlt(locale, currentProduct.name, i)}
       />
     </article>
   );

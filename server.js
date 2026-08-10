@@ -33,7 +33,7 @@ const CONTENT_SECURITY_POLICY = [
   "object-src 'none'",
 ].join("; ");
 
-function securityHeaders(_req, res, next) {
+function securityHeaders(req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("X-Frame-Options", "DENY");
@@ -42,11 +42,21 @@ function securityHeaders(_req, res, next) {
     "camera=(), microphone=(), geolocation=(), payment=()"
   );
 
-  // CSP and HSTS are production-only. Vite's dev server uses eval and an HMR
-  // websocket, both of which this policy would block; HSTS is meaningless
-  // over plain http and would pin localhost to https for the whole browser.
+  // Production-only: Vite's dev server needs eval and an HMR websocket, both
+  // of which this policy blocks.
   if (isProduction) {
     res.setHeader("Content-Security-Policy", CONTENT_SECURITY_POLICY);
+  }
+
+  // HSTS only over a genuinely secure request. Chrome treats localhost as a
+  // trustworthy origin, so sending this from a local production build can pin
+  // *localhost* to https in the developer's browser for two years — which
+  // breaks every other local project on the machine, and is not undone by
+  // removing the header. Behind a proxy (Vercel, Railway, nginx) the TLS
+  // terminates upstream, so trust the forwarded header there.
+  const isSecure =
+    req.secure || req.headers["x-forwarded-proto"] === "https";
+  if (isProduction && isSecure) {
     res.setHeader(
       "Strict-Transport-Security",
       "max-age=63072000; includeSubDomains; preload"
@@ -57,6 +67,10 @@ function securityHeaders(_req, res, next) {
 }
 
 const app = express();
+
+// Vercel/Railway/nginx terminate TLS upstream; without this req.secure is
+// always false and the HSTS check in securityHeaders cannot fire.
+app.set("trust proxy", true);
 
 // Version disclosure; nothing downstream reads it.
 app.disable("x-powered-by");

@@ -33,6 +33,12 @@ export const LOCALES = {
       call: "Zadzwoń",
       address: "ul.Siedlecka 172, 08-110 Żelków-Kolonia, Polska",
     },
+    a11y: {
+      close: "Zamknij",
+      homeLink: "strona główna",
+      selectProduct: (name) => `${name} — wybierz, aby zobaczyć`,
+      selectPhoto: (n) => `Pokaż zdjęcie ${n}`,
+    },
     headings: {
       gallery: "Galeria produktów Neatual",
       contact: "Kontakt",
@@ -82,6 +88,12 @@ export const LOCALES = {
       call: "Call us",
       address: "ul.Siedlecka 172, 08-110 Żelków-Kolonia, Polska",
     },
+    a11y: {
+      close: "Close",
+      homeLink: "home page",
+      selectProduct: (name) => `${name} — select to view`,
+      selectPhoto: (n) => `Show photo ${n}`,
+    },
     headings: {
       gallery: "Neatual product gallery",
       contact: "Contact",
@@ -130,6 +142,12 @@ export const LOCALES = {
       message: "Schreiben",
       call: "Anrufen",
       address: "ul.Siedlecka 172, 08-110 Żelków-Kolonia, Polska",
+    },
+    a11y: {
+      close: "Schließen",
+      homeLink: "Startseite",
+      selectProduct: (name) => `${name} — auswählen zum Anzeigen`,
+      selectPhoto: (n) => `Foto ${n} anzeigen`,
     },
     headings: {
       gallery: "Neatual Produktgalerie",

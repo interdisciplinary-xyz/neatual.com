@@ -25,6 +25,7 @@ export default function HomePage() {
         <LogoIcon
           className="w-32 h-auto tablet:mx-auto tablet:w-56 desktop:w-full"
           style={{ width: 236, height: 292 }}
+          aria-hidden="true"
         />
       </figure>
 
