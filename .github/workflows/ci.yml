@@ -1,0 +1,102 @@
+name: CI
+
+# There was no .github directory at all: nothing ran lint, nothing ran a
+# production build, and nothing ever booted the built server. Three findings in
+# docs/audits/2026-08-10-security-dependency-audit.md were visible in `pnpm
+# build` output or in the booted app, and no automated run ever looked.
+on:
+  push:
+    branches: [master, "scope/**", "release/**"]
+  pull_request:
+
+jobs:
+  quality:
+    name: Lint & build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Now carries react, react-hooks and jsx-a11y. Before this the config
+      # extended eslint:recommended alone and passed while the site shipped
+      # `<li role="button">` and click-only list items.
+      - run: pnpm lint
+
+      - run: pnpm build
+
+      - name: Assert build artifacts exist
+        run: |
+          test -f build/server/index.js
+          test -d build/client/assets
+
+  smoke:
+    name: Production boot smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      # The point of this job. `express` and `cross-env` used to sit in
+      # devDependencies while `pnpm start` needed both at runtime, so a pruned
+      # production install booted straight into ERR_MODULE_NOT_FOUND. Nothing
+      # would have caught that except starting the server the way a host does.
+      - name: Prune to production dependencies
+        run: pnpm install --prod --frozen-lockfile --ignore-scripts
+
+      - name: Boot the server
+        run: |
+          PORT=7878 NODE_ENV=production node ./server.js &
+          for i in $(seq 1 30); do
+            curl -sf -o /dev/null "http://localhost:7878/" && break
+            sleep 1
+          done
+
+      - name: Assert every route responds
+        run: |
+          set -e
+          for path in / /galeria /kontakt /en /en/gallery /en/contact /de /de/galerie /de/kontakte /sitemap.xml /robots.txt; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:7878$path")
+            echo "$code  $path"
+            [ "$code" = "200" ] || exit 1
+          done
+          code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:7878/no-such-page")
+          echo "$code  /no-such-page"
+          [ "$code" = "404" ] || exit 1
+
+      - name: Assert responses are compressed and headers are set
+        run: |
+          set -e
+          headers=$(curl -s -D - -o /dev/null -H 'Accept-Encoding: gzip, br' "http://localhost:7878/galeria")
+          echo "$headers"
+          echo "$headers" | grep -qi '^content-encoding:' || { echo 'no compression'; exit 1; }
+          echo "$headers" | grep -qi '^x-content-type-options: nosniff' || exit 1
+          echo "$headers" | grep -qi '^content-security-policy:' || exit 1
+          echo "$headers" | grep -qi '^x-powered-by:' && { echo 'x-powered-by leaked'; exit 1; }
+          exit 0
+
+      - name: Assert every page has exactly one h1
+        run: |
+          set -e
+          for path in / /galeria /kontakt /en /en/gallery /en/contact /de /de/galerie /de/kontakte; do
+            n=$(curl -s "http://localhost:7878$path" | grep -o '<h1' | wc -l | tr -d ' ')
+            echo "h1=$n  $path"
+            [ "$n" = "1" ] || exit 1
+          done
