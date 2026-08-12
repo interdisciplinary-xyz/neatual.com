@@ -7,6 +7,7 @@ export const LOCALES = {
     navItems: [
       { label: "Główna", link: "/" },
       { label: "Galeria", link: "/galeria" },
+      { label: "Cennik", link: "/cennik" },
       { label: "Kontakt", link: "/kontakt" },
     ],
     home: {
@@ -35,6 +36,7 @@ export const LOCALES = {
     },
     headings: {
       gallery: "Zrealizowane montaże tapet",
+      pricing: "Cennik montażu tapet",
       contact: "Kontakt",
     },
     error: {
@@ -55,6 +57,7 @@ export const LOCALES = {
     navItems: [
       { label: "Home", link: "/en" },
       { label: "Gallery", link: "/en/gallery" },
+      { label: "Pricing", link: "/en/pricing" },
       { label: "Contact", link: "/en/contact" },
     ],
     home: {
@@ -84,6 +87,7 @@ export const LOCALES = {
     },
     headings: {
       gallery: "Completed wallpaper installations",
+      pricing: "Wallpaper installation pricing",
       contact: "Contact",
     },
     error: {
@@ -104,6 +108,7 @@ export const LOCALES = {
     navItems: [
       { label: "Zuhause", link: "/de" },
       { label: "Galerie", link: "/de/galerie" },
+      { label: "Preise", link: "/de/preise" },
       { label: "Kontakte", link: "/de/kontakte" },
     ],
     home: {
@@ -133,6 +138,7 @@ export const LOCALES = {
     },
     headings: {
       gallery: "Abgeschlossene Tapezierarbeiten",
+      pricing: "Preise für Tapezierarbeiten",
       contact: "Kontakt",
     },
     error: {

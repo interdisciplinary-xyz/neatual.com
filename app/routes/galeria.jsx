@@ -66,7 +66,7 @@ export default function GalleryPage() {
   };
 
   return (
-    <article className="flex flex-col h-full pb-12 pt-36 mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 desktop:pt-80 desktop:pb-0">
+    <article className="flex flex-col h-full pb-12 pt-36 mobile:max-w-[260px] tablet:max-w-[608px] tablet:pt-48 desktop:max-w-[1114px] mx-auto px-4 desktop:pt-80 desktop:pb-0">
       {/*
         Visually hidden to preserve the design, which has no visible page
         title — but the page had no heading of any level at all, on any

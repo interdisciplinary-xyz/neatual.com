@@ -10,7 +10,9 @@ import { htmlToBlocks, tidy } from "./portableText.js";
 import {
   HOME_SR_HEADING,
   A11Y_LABELS,
+  CTA,
   PAGE_META,
+  PRICING,
   PRODUCTS,
   PRODUCT_SHARED,
   ADDRESS,
@@ -20,17 +22,68 @@ import {
 export const CONTENT_QUERY = `{
   "pages": *[_type == "page"]{
     pageKey, path, navLabel, srHeading, metaTitle, metaDescription,
-    heading, shortDescription, body
+    heading, shortDescription, body,
+    pricingIsPlaceholder, pricingIntro, pricingRows, pricingNotes
   },
   "products": *[_type == "product"] | order(order asc){
     order, imageBase, photoCount, name, price, descriptionLines, alt
   },
   "settings": *[_type == "siteSettings"][0]{
-    phone, email, address, messageCta, callCta, a11y
+    phone, email, address, messageCta, callCta, ctaHeading, ctaBody, a11y
   }
 }`;
 
-const NAV_INDEX = { home: 0, gallery: 1, contact: 2 };
+const NAV_INDEX = { home: 0, gallery: 1, pricing: 2, contact: 3 };
+
+/**
+ * The pricing payload, in the shape both resolvers return.
+ *
+ * Kept as one helper because the placeholder guard has to behave identically
+ * whichever source answered: if the CMS has not had real rates entered yet, the
+ * page must still declare itself provisional. `pricingIsPlaceholder` therefore
+ * defaults to *true* on a missing value rather than false — an unset flag means
+ * nobody has confirmed the numbers, which is exactly the case the notice and the
+ * noindex exist for.
+ */
+function pricingFrom(page, locale, resolve) {
+  if (!page) return null;
+  const rows = resolve(page.pricingRows) ?? [];
+  return {
+    isPlaceholder: page.pricingIsPlaceholder !== false,
+    // Bundled, never resolved from the CMS. A notice whose entire job is to say
+    // "these numbers are not real" must not be removable by clearing a Studio
+    // field — that would leave fabricated rates on a live page with nothing
+    // marking them as fabricated.
+    placeholderNotice: PRICING.placeholderNotice[locale],
+    intro: resolve(page.pricingIntro) ?? PRICING.intro[locale],
+    columns: Object.fromEntries(
+      Object.entries(PRICING.columns).map(([key, value]) => [
+        key,
+        value[locale],
+      ])
+    ),
+    rows: rows.length
+      ? rows
+      : PRICING.rows.map((row) => ({
+          key: row.key,
+          label: row.label[locale],
+          unit: row.unit[locale],
+          price: row.price[locale],
+        })),
+    notes: resolve(page.pricingNotes) ?? PRICING.notes.map((n) => n[locale]),
+  };
+}
+
+/**
+ * The site-wide CTA. Lives on siteSettings, not on a page, because root.jsx
+ * renders it under every route — see CTA in inlineCopy.js.
+ */
+function ctaFrom(settings, locale, resolve) {
+  return {
+    heading: resolve(settings?.ctaHeading) ?? CTA.heading[locale],
+    body: resolve(settings?.ctaBody) ?? CTA.body[locale],
+  };
+}
 
 let warned = false;
 function warnOnce(reason) {
@@ -87,6 +140,10 @@ export function fromLocales(locale) {
     source: "locales",
     locale,
     pages,
+    // `{}` with a resolver that never resolves: every field falls through to the
+    // bundled PRICING copy, which is the whole point of this branch.
+    pricing: pricingFrom({}, locale, () => undefined),
+    cta: ctaFrom(null, locale, () => undefined),
     products,
     paths: HREFLANG_URLS,
     settings: {
@@ -156,6 +213,12 @@ export function fromSanity(data, locale) {
     source: "sanity",
     locale,
     pages,
+    pricing: pricingFrom(
+      data.pages.find((p) => p.pageKey === "pricing"),
+      locale,
+      (value) => localized(value, locale)
+    ),
+    cta: ctaFrom(s, locale, (value) => localized(value, locale)),
     products,
     paths,
     settings: {

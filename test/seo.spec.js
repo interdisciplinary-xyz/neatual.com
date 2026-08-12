@@ -32,7 +32,7 @@ describe("sitemap.xml", () => {
       (m) => m[1]
     );
 
-    expect(urlBlocks).toHaveLength(9);
+    expect(urlBlocks).toHaveLength(LOCALE_CODES.length * PAGE_KEYS.length);
 
     const hrefFor = (block, code) =>
       block.match(new RegExp(`hreflang="${code}" href="([^"]+)"`))?.[1];

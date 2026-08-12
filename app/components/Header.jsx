@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@remix-run/react";
-import { LogoIcon, PlayIcon, StopIcon } from "./icons";
+import { PlayIcon, StopIcon } from "./icons";
 import { useDeviceType } from "./DisplayMedia";
 import { getLocaleFromPath } from "../lib/locales";
 import { useContent } from "../lib/useContent";
@@ -17,6 +17,8 @@ function getLocalizedPath(pathname, lang) {
     if (normalizedPath === "/") return "/";
     if (normalizedPath === "/gallery" || normalizedPath === "/galerie")
       return "/galeria";
+    if (normalizedPath === "/pricing" || normalizedPath === "/preise")
+      return "/cennik";
     if (normalizedPath === "/contact" || normalizedPath === "/kontakte")
       return "/kontakt";
     return normalizedPath;
@@ -29,6 +31,12 @@ function getLocalizedPath(pathname, lang) {
       normalizedPath === "/galerie"
     )
       return "/en/gallery";
+    if (
+      normalizedPath === "/cennik" ||
+      normalizedPath === "/pricing" ||
+      normalizedPath === "/preise"
+    )
+      return "/en/pricing";
     if (
       normalizedPath === "/kontakt" ||
       normalizedPath === "/contact" ||
@@ -46,6 +54,12 @@ function getLocalizedPath(pathname, lang) {
     )
       return "/de/galerie";
     if (
+      normalizedPath === "/cennik" ||
+      normalizedPath === "/pricing" ||
+      normalizedPath === "/preise"
+    )
+      return "/de/preise";
+    if (
       normalizedPath === "/kontakt" ||
       normalizedPath === "/contact" ||
       normalizedPath === "/kontakte"
@@ -56,23 +70,13 @@ function getLocalizedPath(pathname, lang) {
   return normalizedPath;
 }
 
-function getRouteName(pathname) {
-  if (pathname === "/" || pathname === "/en" || pathname === "/de")
-    return "HOME";
-  if (
-    pathname.includes("/galeria") ||
-    pathname.includes("/gallery") ||
-    pathname.includes("/galerie")
-  )
-    return "GALLERY";
-  if (
-    pathname.includes("/kontakt") ||
-    pathname.includes("/contact") ||
-    pathname.includes("/kontakte")
-  )
-    return "CONTACT";
-  return "HOME";
-}
+/*
+  `getRouteName` used to live here, mapping the path to HOME/GALLERY/PRICING/
+  CONTACT purely so the header could render itself differently per page. With
+  one header on every route there is nothing left to branch on, so it is gone
+  rather than left as a function nobody calls. Page identity is available from
+  getPageKey() in app/lib/seo.js if it is ever needed again.
+*/
 
 export function Header() {
   const location = useLocation();
@@ -80,25 +84,24 @@ export function Header() {
   const locale = getLocaleFromPath(pathname);
   const content = useContent();
   const settings = content?.settings;
-  const routeName = getRouteName(pathname);
   const deviceType = useDeviceType();
-  const isContactPage = routeName === "CONTACT";
-  const isGalleryPage = routeName === "GALLERY";
-  const isHomePage = routeName === "HOME";
+
+  /*
+    One header on every route. It used to vary by page: the gallery swapped the
+    wordmark for the logo mark at desktop, every non-home page swapped it below
+    desktop, and the contact page hid the phone and email entirely. The result
+    was four different headers depending on where you stood.
+
+    Now the only thing that varies is viewport — the wordmark is always the
+    wordmark, and the contact details appear from `desktop:` up, which is where
+    there is room for them. Note that this is a breakpoint rule in CSS
+    (`hidden desktop:flex`), not a JS branch, so it is correct in the
+    server-rendered HTML rather than only after `useDeviceType` has measured.
+  */
   const isDesktop = deviceType === "desktop";
 
-  const showContact = isDesktop && !isContactPage;
-  const showTextLogo =
-    (deviceType === "mobile" && isHomePage) ||
-    (deviceType === "tablet" && isHomePage) ||
-    (isDesktop && !isGalleryPage);
-  const showSvgLogo =
-    (deviceType === "mobile" && !isHomePage) ||
-    (deviceType === "tablet" && !isHomePage) ||
-    (isDesktop && isGalleryPage);
-
   return (
-    <header className="fixed top-0 left-0 pt-12 w-full tablet:bg-background tablet:pt-20 z-10">
+    <header className="fixed top-0 left-0 pt-12 pb-12 w-full tablet:bg-background tablet:pt-20 tablet:pb-20 z-10">
       <div className="flex justify-between mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4">
         <div className="desktop:w-1/3">
           {/*
@@ -114,24 +117,14 @@ export function Header() {
             to={locale === "pl" ? "/" : `/${locale}`}
             className="inline-flex items-center"
           >
-            {showTextLogo && (
-              <span className="font-logo text-18 mr-auto">neatual.com</span>
-            )}
-            {showSvgLogo && (
-              <LogoIcon
-                className="mr-auto tablet:h-auto tablet:w-36 w-32"
-                aria-hidden="true"
-              />
-            )}
+            <span className="font-logo text-18 mr-auto">neatual.com</span>
             <span className="sr-only">
-              {showSvgLogo
-                ? `Neatual — ${settings?.a11y.homeLink ?? ""}`
-                : `— ${settings?.a11y.homeLink ?? ""}`}
+              {`— ${settings?.a11y.homeLink ?? ""}`}
             </span>
           </Link>
         </div>
         <div className="desktop:w-2/3 desktop:flex desktop:px-36">
-          {showContact && (
+          {isDesktop && (
             <ul className="hidden desktop:flex w-2/3">
               {/*
                 sr-only verb rather than aria-label, so the accessible name

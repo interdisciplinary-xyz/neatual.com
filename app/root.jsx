@@ -12,10 +12,23 @@ import {
 } from "@remix-run/react";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
+import { SplashScreen } from "./components/SplashScreen";
+import { ContactCta } from "./components/ContactCta";
 import { LOCALES, getLocaleFromPath } from "./lib/locales";
 import { SITE_URL, HREFLANG_URLS, DEFAULT_LOCALE, getPageKey } from "./lib/seo";
 import { getContent } from "./lib/content.server";
 import "./tailwind.css";
+
+/**
+ * Vite inlines this at build time, identically for the server and client
+ * bundles, so branching render output on it cannot produce a hydration
+ * mismatch.
+ *
+ * The splash's once-per-session gate is production-only on purpose. In dev the
+ * gate is the thing you are trying to look at, and a once-per-session animation
+ * that suppresses itself after the first reload is one you tune blind.
+ */
+const isProduction = import.meta.env.PROD;
 
 function canonicalFor(pathname) {
   const canonicalPath =
@@ -111,6 +124,11 @@ function structuredData(pathname, content) {
     },
   };
 
+  // `pricing` deliberately falls through to WebPage. schema.org has no pricing
+  // page type, and the tempting alternative — emitting Offer/PriceSpecification
+  // nodes — would publish the rate table as machine-readable structured data.
+  // While those rates are placeholders that is precisely how a fabricated price
+  // ends up quoted in a search result. Revisit once real rates are entered.
   const pageType =
     page === "gallery"
       ? "CollectionPage"
@@ -146,16 +164,27 @@ function structuredData(pathname, content) {
 
 export const meta = ({ data, location }) => {
   const pathname = location?.pathname || "/";
-  const { title, description, canonical, locale } = getPageMeta(
+  const { title, description, canonical, locale, page } = getPageMeta(
     pathname,
     data?.content
   );
   const activeLocale = getLocaleFromPath(pathname);
 
+  // The pricing page carries placeholder rates until someone turns
+  // `pricingIsPlaceholder` off in the Studio. Indexing it in that state would
+  // put invented prices for a real business into search results, where they
+  // outlive the page — so the page stays out of the index until the numbers are
+  // real. The flag lifts this by itself; there is nothing to remember to undo.
+  const noindexPlaceholderPricing =
+    page === "pricing" && data?.content?.pricing?.isPlaceholder !== false;
+
   return [
     { charset: "utf-8" },
     { name: "viewport", content: "width=device-width, initial-scale=1.0" },
     { title },
+    ...(noindexPlaceholderPricing
+      ? [{ name: "robots", content: "noindex, follow" }]
+      : []),
     { name: "description", content: description },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
@@ -252,8 +281,39 @@ export default function App() {
             __html: JSON.stringify(structuredData(pathname, content)),
           }}
         />
+        {/*
+          Blocking, and in <head> on purpose: it has to run before the body
+          paints, or a visitor who has already seen the splash this session gets
+          a frame of it before the attribute lands. ~200 bytes inline, and the
+          CSP at server.js:25 already allows 'unsafe-inline' for scripts, so
+          this needs no nonce plumbing.
+
+          The flag is written on the way *in* rather than on unload, because the
+          case being suppressed is exactly a hard navigation to another page.
+
+          `?splash` forces it to play and deliberately does NOT record the flag,
+          so it can be replayed as many times as you like. Without an escape
+          hatch this is a once-per-session animation that nobody — designer,
+          reviewer, or the person tuning the timing — can watch twice without
+          hand-clearing sessionStorage, which is how animations end up shipped
+          having been looked at exactly once.
+
+          try/catch is not defensive padding: Safari in Lockdown/private mode
+          throws on sessionStorage access rather than returning null, and an
+          uncaught throw here would take the rest of this script with it. If it
+          does throw, the splash simply shows again — the CSS still dismisses it.
+        */}
+        {isProduction && (
+          <script
+            dangerouslySetInnerHTML={{
+              __html:
+                "try{if(location.search.indexOf('splash')<0){if(sessionStorage.getItem('neatual:splash')){document.documentElement.dataset.splash='seen'}else{sessionStorage.setItem('neatual:splash','1')}}}catch(e){}",
+            }}
+          />
+        )}
       </head>
       <body className="min-h-screen bg-background text-black">
+        <SplashScreen />
         <a href="#main-content" className="skip-link">
           {locale === "pl"
             ? "Przejdź do treści"
@@ -274,10 +334,17 @@ export default function App() {
         */}
         <main
           id="main-content"
-          className="flex-1 min-w-0 pb-24 tablet:pb-36"
+          className="flex-1 min-w-0 flex flex-col pb-32 tablet:pb-56"
           tabIndex={-1}
         >
           <Outlet />
+          {/*
+            Rendered here rather than per-route so every page gets it from one
+            place — including /kontakt, which therefore shows these two buttons
+            twice (the contact page's own pair, then the CTA's). That duplication
+            is deliberate and requested, not an oversight.
+          */}
+          <ContactCta />
         </main>
         <Footer />
         <ScrollRestoration />
@@ -318,7 +385,7 @@ export function ErrorBoundary() {
         <Header />
         <main
           id="main-content"
-          className="flex-1 min-w-0 pb-24 tablet:pb-36"
+          className="flex-1 min-w-0 flex flex-col pb-32 tablet:pb-56"
           tabIndex={-1}
         >
           <article className="mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 pt-48 tablet:pt-80">

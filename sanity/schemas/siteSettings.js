@@ -55,6 +55,17 @@ export const siteSettings = {
     },
     localizedField({ name: "messageCta", title: "‘Write to us’ button label" }),
     localizedField({ name: "callCta", title: "‘Call us’ button label" }),
+    localizedField({
+      name: "ctaHeading",
+      title: "Call-to-action heading",
+      description:
+        "Shown under the content of every page. One block for the whole site, so it cannot drift between pages.",
+    }),
+    localizedField({
+      name: "ctaBody",
+      title: "Call-to-action body",
+      of: { type: "text", rows: 3 },
+    }),
     {
       name: "a11y",
       title: "Accessibility labels",
