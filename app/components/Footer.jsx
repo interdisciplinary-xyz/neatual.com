@@ -1,5 +1,6 @@
 import { PlayIcon, StopIcon } from "./icons";
 import { useContent } from "../lib/useContent";
+import { CHROME_FRAME } from "./frame";
 
 /**
  * Site footer: the phone number and the email address, nothing else.
@@ -25,11 +26,11 @@ export function Footer() {
   return (
     <footer className="w-full bg-background py-8 tablet:py-12">
       {/*
-        Full-bleed with the same `px-[48px]` as the header, so the two bars line
+        Full-bleed on the same CHROME_FRAME as the header, so the two bars line
         up at both edges and read as one frame around the page. See the note in
-        Header.jsx on why 48px is an arbitrary value rather than a scale step.
+        frame.js on why those are arbitrary values rather than scale steps.
       */}
-      <div className="px-[48px]">
+      <div className={CHROME_FRAME}>
         {/*
           `justify-end` mirrors the header, where the contact details sat at the
           right edge before they moved down here. `flex-wrap` for the 260px case:

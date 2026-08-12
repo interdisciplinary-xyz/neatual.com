@@ -13,6 +13,7 @@ import {
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { SplashScreen } from "./components/SplashScreen";
+import { PAGE_FRAME } from "./components/frame";
 import { LOCALES, getLocaleFromPath } from "./lib/locales";
 import {
   SITE_URL,
@@ -444,7 +445,7 @@ export function ErrorBoundary() {
           className="flex-1 min-w-0 flex flex-col pb-16 tablet:pb-24"
           tabIndex={-1}
         >
-          <article className="mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 pt-48 tablet:pt-80">
+          <article className={`${PAGE_FRAME} pt-48 tablet:pt-80`}>
             <p className="text-14 text-gray-accessible mb-4">{status}</p>
             <h1 className="font-bold text-18 mb-6">{heading}</h1>
             <p className="text-16 text-content mb-10 max-w-prose">{body}</p>

@@ -1,4 +1,5 @@
 import { LogoIcon } from "./icons";
+import { PAGE_FRAME } from "./frame";
 
 /**
  * The shell every route renders into: logo mark beside page content, two columns
@@ -18,7 +19,7 @@ import { LogoIcon } from "./icons";
  */
 export function PageLayout({ srHeading, showHeading = false, children }) {
   return (
-    <article className="w-full pt-48 pb-12 mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 desktop:pt-80">
+    <article className={`${PAGE_FRAME} pt-48 pb-12 desktop:pt-80`}>
       {/*
         `[1fr_2fr]` rather than two equal halves. The mark is decorative and the
         content is not, and at half of 1114px the mark alone would be 527px —
