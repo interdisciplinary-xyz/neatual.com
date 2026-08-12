@@ -7,6 +7,26 @@ export const siteSettings = {
   // Singleton — the structure resolver pins this to a single document.
   fields: [
     {
+      name: "wordmark",
+      title: "Wordmark",
+      type: "string",
+      description:
+        "The brand as written in the header and on the splash screen — 'neatual.com'. A name, not a translation, so it is the same in all three languages.",
+    },
+    {
+      name: "brandName",
+      title: "Brand name",
+      type: "string",
+      description:
+        "The brand without the domain — 'neatual'. Used for the large wordmark on the home page and beside the address on the contact page, where it is shown in capitals.",
+    },
+    localizedField({
+      name: "skipLink",
+      title: "Skip-to-content link",
+      description:
+        "The first thing a keyboard or screen-reader user reaches on every page. It jumps past the header to the page content.",
+    }),
+    {
       name: "phone",
       title: "Phone",
       type: "string",
@@ -66,6 +86,29 @@ export const siteSettings = {
       title: "Call-to-action body",
       of: { type: "text", rows: 3 },
     }),
+    {
+      name: "error",
+      title: "Error pages",
+      type: "object",
+      description:
+        "The 404 and 500 pages. These render from the bundled copy whenever the CMS itself is what failed — editing them here covers the ordinary case, a visitor following a dead link.",
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        localizedField({ name: "notFoundHeading", title: "404 heading" }),
+        localizedField({
+          name: "notFoundBody",
+          title: "404 body",
+          of: { type: "text", rows: 3 },
+        }),
+        localizedField({ name: "errorHeading", title: "500 heading" }),
+        localizedField({
+          name: "errorBody",
+          title: "500 body",
+          of: { type: "text", rows: 3 },
+        }),
+        localizedField({ name: "backHome", title: "‘Back home’ link" }),
+      ],
+    },
     {
       name: "a11y",
       title: "Accessibility labels",

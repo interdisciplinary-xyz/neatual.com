@@ -1,105 +1,71 @@
-import { useState, useEffect, useMemo } from "react";
-import { useLocation } from "@remix-run/react";
+import { useMemo } from "react";
+import { Link, useLocation } from "@remix-run/react";
 import { getLocaleFromPath } from "../lib/locales";
-import { fillTemplate } from "../lib/inlineCopy";
+import { galleryCategoryPath } from "../lib/seo";
 import { useContent } from "../lib/useContent";
-import { ModalSingleProduct } from "../components/ModalSingleProduct";
+import { PageLayout } from "../components/PageLayout";
 import { ProductImage } from "../components/ProductImage";
 
-// Measured rendered widths, not guesses: the grid tile is ~115px in the 2-col
-// mobile grid, ~290px in the 2-col tablet grid, and ~112px in the 3-col
-// desktop column. The detail image only renders at >=1114px, in a ~285px
-// square. The photo strip is `w-20`, which is 50px at this root font-size.
-const TILE_SIZES = "(min-width: 1114px) 120px, (min-width: 608px) 290px, 120px";
-const DETAIL_SIZES = "285px";
-const STRIP_SIZES = "50px";
+// Measured rendered widths, not guesses: the tile is ~115px in the 2-col mobile
+// grid, ~290px in the 2-col tablet grid, and ~216px in the 3-col desktop content
+// column.
+const TILE_SIZES = "(min-width: 1114px) 220px, (min-width: 608px) 290px, 120px";
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-
-  return isMobile;
-}
-
+/**
+ * The gallery index: one tile per category, each linking to its own page.
+ *
+ * It used to be the whole gallery — a tile column beside a detail panel, with
+ * the selected product's photos swapped in place and a modal standing in for the
+ * panel below 1114px. Nothing about which product you were looking at was in the
+ * URL, so no category could be linked to, shared, or indexed; the six of them
+ * were one page as far as search was concerned.
+ */
 export default function GalleryPage() {
   const location = useLocation();
   const locale = getLocaleFromPath(location.pathname);
-  const [currentProductIndex, setCurrentProductIndex] = useState(0);
-  const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
-  const [modalOpen, setModalOpen] = useState(false);
-  const isMobile = useIsMobile();
-
   const content = useContent();
   const page = content?.pages.gallery;
-  const a11y = content?.settings.a11y;
-  // Photo paths are derived, not stored: the responsive variants are generated
-  // from art/gallery-originals by scripts/generate-gallery-images.mjs, so the
-  // CMS holds the folder name and the count rather than four URLs per product.
-  const products = useMemo(
-    () =>
-      (content?.products ?? []).map((p) => ({
-        ...p,
-        thumbnailBase: `/gallery/${p.imageBase}/${p.imageBase}-1`,
-        photos: Array.from({ length: p.photoCount }, (_, i) => ({
-          base: `/gallery/${p.imageBase}/${p.imageBase}-${i + 1}`,
-        })),
-      })),
-    [content]
-  );
-  const currentProduct = products[currentProductIndex];
-  const currentPhoto =
-    currentProduct?.photos[currentPhotoIndex] || currentProduct?.photos[0];
-  const photoBase = currentPhoto?.base || currentProduct?.thumbnailBase;
-  const photoAltFor = (index) =>
-    fillTemplate(a11y?.photoAlt, { name: currentProduct?.name, n: index });
 
-  const openProduct = (index) => {
-    setCurrentProductIndex(index);
-    setCurrentPhotoIndex(0);
-    if (isMobile) setModalOpen(true);
-  };
+  // Thumbnail paths are derived, not stored: the responsive variants are
+  // generated from art/gallery-originals by scripts/generate-gallery-images.mjs,
+  // so the CMS holds the folder name and the count rather than a URL per photo.
+  const categories = useMemo(
+    () =>
+      (content?.products ?? []).map((product) => ({
+        ...product,
+        // `slug` addresses the page, `imageBase` addresses the folder. They hold
+        // the same word today and are separate fields on purpose — see
+        // categoryFrom() in content.server.js.
+        to: galleryCategoryPath(locale, product.slug, content?.paths),
+        thumbnailBase: `/gallery/${product.imageBase}/${product.imageBase}-1`,
+      })),
+    [content, locale]
+  );
 
   return (
-    <article className="flex flex-col h-full pb-12 pt-36 mobile:max-w-[260px] tablet:max-w-[608px] tablet:pt-48 desktop:max-w-[1114px] mx-auto px-4 desktop:pt-80 desktop:pb-0">
-      {/*
-        Visually hidden to preserve the design, which has no visible page
-        title — but the page had no heading of any level at all, on any
-        locale. Matches the pattern already used on the homepage.
-      */}
-      <h1 className="sr-only">{page?.srHeading}</h1>
-      <div className="w-full desktop:flex desktop:gap-8">
-        <div className="w-full desktop:w-1/3">
-          <ul className="grid grid-cols-2 gap-4 desktop:grid-cols-3 desktop:overflow-y-auto desktop:h-full">
+    <PageLayout srHeading={page?.srHeading}>
+      <ul className="grid grid-cols-2 gap-4 desktop:grid-cols-3">
+        {categories.map((category, index) => (
+          <li key={category.slug}>
             {/*
-              Each tile was `<li role="button" tabIndex={0}>`, which Lighthouse
-              failed twice over: aria-allowed-role (button is not a permitted
-              role on <li>) and list (a <ul> whose children are not list
-              items). A real <button> inside the <li> restores list semantics
-              and gets keyboard activation for free.
+              The whole tile is one link, with the category name as its text —
+              so it needs no aria-label, and the accessible name is the visible
+              one (WCAG 2.5.3). The tiles used to be image-only buttons whose
+              only name was an aria-label nobody could see.
             */}
-            {products.map((item, index) => (
-              <li
-                key={index}
-                className={`aspect-square overflow-hidden rounded-2xl border-2 relative ${
-                  currentProductIndex === index
-                    ? "border-black"
-                    : "border-transparent"
-                }`}
-              >
+            <Link
+              to={category.to}
+              className="block group focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+            >
+              <span className="block aspect-square overflow-hidden rounded-2xl border-2 border-transparent relative group-hover:border-black">
                 {/*
-                  Was `index < 4 ? "eager" : "lazy"` with exactly 4 products,
-                  so nothing was ever lazy. Only the first tile is above the
-                  fold on every viewport, so only it is eager.
+                  Was `index < 4 ? "eager" : "lazy"` with exactly 4 products, so
+                  nothing was ever lazy. Only the first tile is above the fold on
+                  every viewport, so only it is eager.
                 */}
                 <ProductImage
-                  base={item.thumbnailBase}
-                  alt={item.alt}
+                  base={category.thumbnailBase}
+                  alt=""
                   width={400}
                   height={400}
                   sizes={TILE_SIZES}
@@ -107,101 +73,19 @@ export default function GalleryPage() {
                   fetchPriority={index === 0 ? "high" : undefined}
                   className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full object-cover"
                 />
-                <button
-                  type="button"
-                  onClick={() => openProduct(index)}
-                  aria-label={fillTemplate(a11y?.selectProduct, {
-                    name: item.name,
-                  })}
-                  aria-pressed={currentProductIndex === index}
-                  className="absolute inset-0 w-full h-full cursor-pointer rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-        {/*
-          Guarded because `products` now comes from the CMS. It is never empty
-          in practice — the adapter falls back to the bundled copy rather than
-          returning an empty list — but an unguarded `currentProduct.alt` would
-          turn any such gap into a render crash rather than a missing panel.
-        */}
-        {currentProduct && (
-          <div className="hidden desktop:flex w-2/3 px-36">
-            <div className="w-1/2">
-              <figure className="aspect-square overflow-hidden rounded-2xl mb-8">
-                <ProductImage
-                  base={photoBase}
-                  alt={currentProduct.alt || currentProduct.name}
-                  width={600}
-                  height={600}
-                  sizes={DETAIL_SIZES}
-                  className="w-full h-full object-cover"
-                />
-              </figure>
-            </div>
-            <div className="w-1/2 pl-16">
-              <div className="flex flex-col">
-                <div className="flex justify-between mb-16">
-                  <div>
-                    <h2 className="uppercase font-bold text-16">
-                      {currentProduct.name}
-                    </h2>
-                    <p className="text-14 text-content">
-                      {currentProduct.descriptionLines.map((line) => (
-                        <span key={line} className="block">
-                          {line}
-                        </span>
-                      ))}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-16">{currentProduct.price}</p>
-                  </div>
-                </div>
-                <ul className="flex flex-wrap gap-2">
-                  {/*
-                  The photo strip was click-only: onClick on a bare <li> with
-                  no role, tabIndex or key handler, so a keyboard user could
-                  not switch between a product's four photos anywhere on the
-                  site.
-                */}
-                  {currentProduct.photos.map((image, index) => (
-                    <li key={index} className="w-20 aspect-square">
-                      <button
-                        type="button"
-                        onClick={() => setCurrentPhotoIndex(index)}
-                        aria-label={fillTemplate(a11y?.selectPhoto, {
-                          n: index + 1,
-                        })}
-                        aria-pressed={currentPhotoIndex === index}
-                        className="block w-full h-full overflow-hidden rounded-xl cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                      >
-                        <ProductImage
-                          base={image.base}
-                          alt={photoAltFor(index + 1)}
-                          width={80}
-                          height={80}
-                          sizes={STRIP_SIZES}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      <ModalSingleProduct
-        product={currentProduct}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        closeLabel={a11y?.close}
-        selectPhotoLabel={(n) => fillTemplate(a11y?.selectPhoto, { n })}
-        photoAlt={photoAltFor}
-      />
-    </article>
+              </span>
+              {/*
+                `alt=""` above, and the name here as real text. The photograph is
+                decorative once the link is named — describing it as well would
+                announce the same tile twice, once as prose and once as a link.
+              */}
+              <span className="block uppercase font-bold text-14 mt-3">
+                {category.name}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </PageLayout>
   );
 }

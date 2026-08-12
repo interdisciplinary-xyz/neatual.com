@@ -13,10 +13,17 @@ import {
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { SplashScreen } from "./components/SplashScreen";
-import { ContactCta } from "./components/ContactCta";
 import { LOCALES, getLocaleFromPath } from "./lib/locales";
-import { SITE_URL, HREFLANG_URLS, DEFAULT_LOCALE, getPageKey } from "./lib/seo";
+import {
+  SITE_URL,
+  HREFLANG_URLS,
+  DEFAULT_LOCALE,
+  getPageKey,
+  getGalleryCategorySlug,
+  galleryCategoryPath,
+} from "./lib/seo";
 import { getContent } from "./lib/content.server";
+import { useContent } from "./lib/useContent";
 import "./tailwind.css";
 
 /**
@@ -38,22 +45,44 @@ function canonicalFor(pathname) {
   return `${SITE_URL}${canonicalPath}`;
 }
 
+/** The category a gallery path points at, or null. */
+function categoryFor(pathname, content) {
+  const slug = getGalleryCategorySlug(pathname);
+  if (!slug) return null;
+  return content?.products?.find((p) => p.slug === slug) ?? null;
+}
+
 /**
  * Title and description now come from the CMS. `content` is absent only when the
  * root loader itself failed — Remix still renders meta for the ErrorBoundary —
  * so fall back to the bundled copy rather than emitting an empty <title>.
+ *
+ * Category pages take the gallery's `page` key but not its title and
+ * description. Both come from the category document in Sanity, which composes
+ * them from the name, alt text and description lines when an editor has not
+ * written them — see categoryFrom() in content.server.js, so the composition
+ * happens once for the page, the sitemap and anything else that asks.
  */
 function getPageMeta(pathname, content) {
   const locale = getLocaleFromPath(pathname);
   const page = getPageKey(pathname);
   const cmsPage = content?.pages?.[page];
+  const category = categoryFor(pathname, content);
+
+  const title = category
+    ? category.metaTitle
+    : (cmsPage?.metaTitle ?? LOCALES[locale].title);
+  const description = category
+    ? category.metaDescription
+    : (cmsPage?.metaDescription ?? LOCALES[locale].description);
 
   return {
-    title: cmsPage?.metaTitle ?? LOCALES[locale].title,
-    description: cmsPage?.metaDescription ?? LOCALES[locale].description,
+    title,
+    description,
     canonical: canonicalFor(pathname),
     locale: LOCALES[locale].lang,
     page,
+    categorySlug: category ? category.slug : null,
   };
 }
 
@@ -217,11 +246,22 @@ export const meta = ({ data, location }) => {
  * Paths come from the CMS so a slug edited in the Studio updates the hreflang
  * tags without a deploy. `HREFLANG_URLS` remains the fallback for the case where
  * the loader could not reach Sanity.
+ *
+ * On a category page the alternates are that same category in the other two
+ * locales, not the gallery index. Pointing them at the index would tell Google
+ * the Polish floral page and the German gallery listing are translations of each
+ * other, and reciprocity would fail in both directions.
  */
-function getAlternatePaths(pathname, paths = HREFLANG_URLS) {
+function getAlternatePaths(
+  pathname,
+  paths = HREFLANG_URLS,
+  categorySlug = null
+) {
   const page = getPageKey(pathname);
   const hrefFor = (code) =>
-    `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
+    categorySlug
+      ? `${SITE_URL}${galleryCategoryPath(code, categorySlug, paths)}`
+      : `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
   return [
     { rel: "alternate", hreflang: "pl", href: hrefFor("pl") },
     { rel: "alternate", hreflang: "en", href: hrefFor("en") },
@@ -258,8 +298,8 @@ export default function App() {
   const { pathname, content } = useLoaderData() ?? { pathname: "/" };
   const locale = getLocaleFromPath(pathname);
   const htmlLang = locale === "pl" ? "pl" : locale === "en" ? "en" : "de";
-  const { canonical } = getPageMeta(pathname, content);
-  const alternates = getAlternatePaths(pathname, content?.paths);
+  const { canonical, categorySlug } = getPageMeta(pathname, content);
+  const alternates = getAlternatePaths(pathname, content?.paths, categorySlug);
 
   return (
     <html lang={htmlLang} className="font-sans">
@@ -313,40 +353,50 @@ export default function App() {
         )}
       </head>
       <body className="min-h-screen bg-background text-black">
-        <SplashScreen />
+        <SplashScreen wordmark={content?.settings.wordmark} />
+        {/*
+          The skip link is the first thing a keyboard user reaches, and it is
+          page copy like any other — it comes from the CMS now rather than from
+          a three-way ternary here. content.server.js supplies the bundled text
+          if Sanity is unreachable, so it is never empty.
+        */}
         <a href="#main-content" className="skip-link">
-          {locale === "pl"
-            ? "Przejdź do treści"
-            : locale === "en"
-              ? "Skip to main content"
-              : "Zum Inhalt springen"}
+          {content?.settings.skipLink}
         </a>
         <Header />
         {/*
-          `flex-1 min-w-0` is load-bearing. `body` is `display: flex`
-          (tailwind.css), so <main> is a flex item; without a grow value it
+          `flex-1 min-w-0` is load-bearing on this wrapper. `body` is a flex
+          *row* (`display: flex` with no direction, tailwind.css), so its
+          in-flow children are columns; without a grow value each one
           shrink-to-fits its max-content width. On text-heavy routes that
           happens to fill the viewport, but on /galeria — where every visible
           element is either absolutely positioned or gated behind `desktop:` —
           max-content was 38px, collapsing the product grid to 0-width columns
           and rendering the tiles as their 4px borders alone on every viewport
           under 1114px. See docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md §2.4.
+
+          The wrapper exists so <main> and <footer> stack vertically. Dropped
+          straight into `body` they would sit side by side as two columns of
+          that row. `flex-1` on <main> inside it is what pins the footer to the
+          bottom of a short page.
         */}
-        <main
-          id="main-content"
-          className="flex-1 min-w-0 flex flex-col pb-32 tablet:pb-56"
-          tabIndex={-1}
-        >
-          <Outlet />
-          {/*
-            Rendered here rather than per-route so every page gets it from one
-            place — including /kontakt, which therefore shows these two buttons
-            twice (the contact page's own pair, then the CTA's). That duplication
-            is deliberate and requested, not an oversight.
-          */}
-          <ContactCta />
-        </main>
-        <Footer />
+        <div className="flex-1 min-w-0 flex flex-col">
+          <main
+            id="main-content"
+            className="flex-1 min-w-0 flex flex-col pb-16 tablet:pb-24"
+            tabIndex={-1}
+          >
+            {/*
+              The CTA used to render here, under every route. It is now the
+              third column of PageLayout, which every route renders into — still
+              one place, but inside the page grid rather than in a band beneath
+              it. /kontakt no longer shows the two buttons twice, because its own
+              pair *was* that column and has gone.
+            */}
+            <Outlet />
+          </main>
+          <Footer />
+        </div>
         <ScrollRestoration />
         <Scripts />
       </body>
@@ -365,12 +415,18 @@ export function ErrorBoundary() {
   const location = useLocation();
   const locale = getLocaleFromPath(location?.pathname || "/");
   const config = LOCALES[locale];
+  /*
+    The CMS copy when the root loader ran — which is the ordinary case, a 404
+    thrown by a child route — and the bundled copy when it did not. useContent()
+    reads root's loader data and returns undefined rather than throwing when that
+    loader is the thing that failed, which is exactly the distinction needed.
+  */
+  const content = useContent();
+  const copy = content?.error ?? config.error;
   const isNotFound = isRouteErrorResponse(error) && error.status === 404;
   const status = isRouteErrorResponse(error) ? error.status : 500;
-  const heading = isNotFound
-    ? config.error.notFoundHeading
-    : config.error.errorHeading;
-  const body = isNotFound ? config.error.notFoundBody : config.error.errorBody;
+  const heading = isNotFound ? copy.notFoundHeading : copy.errorHeading;
+  const body = isNotFound ? copy.notFoundBody : copy.errorBody;
 
   return (
     <html lang={locale} className="font-sans">
@@ -385,7 +441,7 @@ export function ErrorBoundary() {
         <Header />
         <main
           id="main-content"
-          className="flex-1 min-w-0 flex flex-col pb-32 tablet:pb-56"
+          className="flex-1 min-w-0 flex flex-col pb-16 tablet:pb-24"
           tabIndex={-1}
         >
           <article className="mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[1114px] mx-auto px-4 pt-48 tablet:pt-80">
@@ -393,14 +449,13 @@ export function ErrorBoundary() {
             <h1 className="font-bold text-18 mb-6">{heading}</h1>
             <p className="text-16 text-content mb-10 max-w-prose">{body}</p>
             <Link
-              to={HREFLANG_URLS[locale].home}
+              to={content?.pages?.home?.path ?? HREFLANG_URLS[locale].home}
               className="inline-block border-2 border-black uppercase text-16 text-center px-8 py-3 rounded-full font-bold hover:bg-black hover:text-white"
             >
-              {config.error.backHome}
+              {copy.backHome}
             </Link>
           </article>
         </main>
-        <Footer />
         <Scripts />
       </body>
     </html>

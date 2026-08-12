@@ -91,6 +91,9 @@ async function check() {
     }
 
     for (const field of [
+      "wordmark",
+      "brandName",
+      "skipLink",
       "phone",
       "email",
       "addressLine",
@@ -116,9 +119,24 @@ async function check() {
         );
       }
     }
+    for (const key of Object.keys(local.error ?? {})) {
+      if (cms.error?.[key] !== local.error[key]) {
+        report(`${locale}/error`, key, cms.error?.[key], local.error[key]);
+      }
+    }
     for (const [i, product] of local.products.entries()) {
       const other = cms.products[i];
-      for (const field of ["name", "price", "alt"]) {
+      // `slug` is what the URL is built from, so drift here is a dead link
+      // rather than a wording difference — it is checked with the copy.
+      for (const field of [
+        "slug",
+        "imageBase",
+        "name",
+        "price",
+        "alt",
+        "metaTitle",
+        "metaDescription",
+      ]) {
         if (product[field] !== other?.[field]) {
           report(
             `${locale}/product[${i}]`,
