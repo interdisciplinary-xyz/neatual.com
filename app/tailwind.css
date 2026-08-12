@@ -31,6 +31,112 @@ body {
   width: 100%;
 }
 
+/*
+  First-visit splash. Full-screen by way of `position: fixed; inset: 0` rather
+  than a sized box, and `z-50` rather than the `z-10` the chrome uses: Header
+  and Footer are both `fixed z-10`, so anything at or below that would leave the
+  two bars sitting on top of the splash.
+
+  `pointer-events: none` from the first frame, deliberately. A visitor who
+  already knows where they are going can click straight through to the nav
+  underneath instead of losing 2.4s of taps to a decorative layer.
+
+  Background is the same #EDEDED as `html` above, which makes the fixed-element
+  viewport quirks moot — on a mobile browser where `inset: 0` resolves to the
+  large viewport and the URL bar uncovers a strip, the strip is already this
+  colour.
+*/
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  background: #ededed;
+  pointer-events: none;
+  animation: splash-out 2400ms both;
+}
+
+/*
+  Set by the inline <head> script in root.jsx when this session has already seen
+  the splash. A data attribute rather than a class because React owns
+  `<html className>` — appending to that risks it being reset on a re-render,
+  whereas an attribute React never declares is left alone.
+*/
+[data-splash="seen"] .splash {
+  display: none;
+}
+
+.splash-mark {
+  width: 5.6rem;
+  height: auto;
+  animation: splash-in 400ms ease-out both;
+}
+
+.splash-wordmark {
+  font-size: 1.8rem;
+  animation: splash-in 400ms ease-out 120ms both;
+}
+
+@keyframes splash-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.8rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  Holds fully opaque to 1.92s (80% of 2400ms) so the mark has settled and had a
+  beat to read before the page is revealed, then fades out over 480ms. Ends on
+  `visibility: hidden` rather than opacity alone so the layer stops being
+  rendered at all, instead of lingering as a transparent full-screen div over
+  every page for the rest of the session.
+
+  This duration is the one number here that is not free: Lighthouse starts each
+  run with empty sessionStorage, so the splash is in the measured path on every
+  CI run. Re-run `pnpm test:performance` after changing it rather than assuming
+  the last measurement carries over. See docs/plans for the numbers.
+*/
+@keyframes splash-out {
+  0%,
+  80% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/*
+  Reduced motion keeps the splash and drops only the movement — the request is
+  for less motion, not for a different site. The overlay's own fade is an
+  opacity change, which is not what this preference is about.
+*/
+@media (prefers-reduced-motion: reduce) {
+  .splash-mark,
+  .splash-wordmark {
+    animation-name: splash-fade;
+  }
+}
+
+@keyframes splash-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 .skip-link {
   position: absolute;
   left: -9999px;

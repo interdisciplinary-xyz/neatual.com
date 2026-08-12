@@ -18,7 +18,9 @@ import { htmlToBlocks, tidy } from "../app/lib/portableText.js";
 import {
   HOME_SR_HEADING,
   A11Y_LABELS,
+  CTA,
   PAGE_META,
+  PRICING,
   PRODUCTS,
   PRODUCT_SHARED,
   ADDRESS,
@@ -45,7 +47,7 @@ if (!dryRun && !asNdjson && !token) {
   process.exit(1);
 }
 
-const NAV_INDEX = { home: 0, gallery: 1, contact: 2 };
+const NAV_INDEX = { home: 0, gallery: 1, pricing: 2, contact: 3 };
 
 /** Builds a { pl, en, de } object by running `pick` for each locale. */
 const byLocale = (pick) =>
@@ -79,6 +81,31 @@ function buildPage(pageKey) {
     ),
   };
 
+  if (pageKey === "pricing") {
+    // Seeded with `pricingIsPlaceholder: true` on purpose. The rates below are
+    // the em-dash placeholders from inlineCopy.js, and the flag is what keeps
+    // the page carrying its "not an offer" notice and its noindex until an
+    // editor replaces them and turns it off.
+    doc.pricingIsPlaceholder = PRICING.isPlaceholder;
+    doc.pricingIntro = byLocale((_, code) => PRICING.intro[code]);
+    doc.pricingRows = Object.fromEntries(
+      LOCALE_CODES.map((code) => [
+        code,
+        PRICING.rows.map((row) => ({
+          _key: row.key,
+          _type: "object",
+          key: row.key,
+          label: row.label[code],
+          unit: row.unit[code],
+          price: row.price[code],
+        })),
+      ])
+    );
+    doc.pricingNotes = Object.fromEntries(
+      LOCALE_CODES.map((code) => [code, PRICING.notes.map((n) => n[code])])
+    );
+  }
+
   if (pageKey === "home") {
     doc.heading = byLocale((config) => tidy(config.home.heading));
     doc.shortDescription = byLocale((config) =>
@@ -107,6 +134,8 @@ function buildSiteSettings() {
     address: ADDRESS,
     messageCta: byLocale((config) => config.contact.message),
     callCta: byLocale((config) => config.contact.call),
+    ctaHeading: byLocale((_, code) => CTA.heading[code]),
+    ctaBody: byLocale((_, code) => CTA.body[code]),
     a11y: {
       close: byLocale((config) => config.a11y.close),
       homeLink: byLocale((config) => config.a11y.homeLink),

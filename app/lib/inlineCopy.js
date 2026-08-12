@@ -210,6 +210,152 @@ export const PRODUCT_SHARED = {
 };
 
 /**
+ * The price list.
+ *
+ * ⚠️ EVERY RATE HERE IS A PLACEHOLDER. No real pricing was supplied, and
+ * inventing numbers for a real business is worse than shipping none — a visitor
+ * cannot tell a made-up rate from a quoted one. The amounts are deliberately
+ * `———` rather than plausible-looking figures, so there is no version of this
+ * page that reads as genuine while being fabricated.
+ *
+ * `isPlaceholder` drives two things: the notice rendered above the table, and
+ * `noindex` on the page (see root.jsx). Set it false in the Studio once real
+ * rates are in and both guards lift themselves — there is nothing to remember
+ * to undo in the code.
+ *
+ * The rows are the *structure* of a wallpaper-hanging quote, which is real even
+ * though the numbers are not: area-based installation, per-type surcharges,
+ * surface preparation, and the things that are quoted per-job rather than per m².
+ */
+export const PRICING = {
+  isPlaceholder: true,
+
+  placeholderNotice: {
+    pl: "Cennik w przygotowaniu. Poniższe stawki są przykładowe i nie stanowią oferty — po wycenę prosimy o kontakt.",
+    en: "This price list is being prepared. The rates below are placeholders and are not an offer — please get in touch for a quote.",
+    de: "Diese Preisliste wird noch erstellt. Die untenstehenden Sätze sind Platzhalter und stellen kein Angebot dar — für ein Angebot kontaktieren Sie uns bitte.",
+  },
+
+  intro: {
+    pl: "Montaż wyceniamy według powierzchni ściany i rodzaju tapety. Poniżej zakres prac, które wchodzą w wycenę.",
+    en: "We price installation by wall area and wallpaper type. Below is the scope of work a quote covers.",
+    de: "Wir kalkulieren die Montage nach Wandfläche und Tapetenart. Unten der Leistungsumfang, den ein Angebot abdeckt.",
+  },
+
+  columns: {
+    service: { pl: "Zakres", en: "Service", de: "Leistung" },
+    unit: { pl: "Jednostka", en: "Unit", de: "Einheit" },
+    price: { pl: "Stawka", en: "Rate", de: "Satz" },
+  },
+
+  // `price` is intentionally the same em-dash placeholder in every locale.
+  rows: [
+    {
+      key: "standard",
+      label: {
+        pl: "Montaż tapety wzorzystej",
+        en: "Patterned wallpaper installation",
+        de: "Montage gemusterter Tapete",
+      },
+      unit: { pl: "m²", en: "m²", de: "m²" },
+      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+    },
+    {
+      key: "mural",
+      label: {
+        pl: "Montaż fototapety",
+        en: "Photo mural installation",
+        de: "Montage von Fototapeten",
+      },
+      unit: { pl: "m²", en: "m²", de: "m²" },
+      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+    },
+    {
+      key: "textured",
+      label: {
+        pl: "Montaż tapety strukturalnej",
+        en: "Textured wallpaper installation",
+        de: "Montage von Strukturtapeten",
+      },
+      unit: { pl: "m²", en: "m²", de: "m²" },
+      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+    },
+    {
+      key: "preparation",
+      label: {
+        pl: "Przygotowanie podłoża (gruntowanie, drobne ubytki)",
+        en: "Surface preparation (priming, minor filling)",
+        de: "Untergrundvorbereitung (Grundierung, kleine Ausbesserungen)",
+      },
+      unit: { pl: "m²", en: "m²", de: "m²" },
+      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+    },
+    {
+      key: "removal",
+      label: {
+        pl: "Zdjęcie starej tapety",
+        en: "Removal of existing wallpaper",
+        de: "Entfernen alter Tapeten",
+      },
+      unit: { pl: "m²", en: "m²", de: "m²" },
+      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+    },
+    {
+      key: "minimum",
+      label: {
+        pl: "Minimalna wartość zlecenia",
+        en: "Minimum job value",
+        de: "Mindestauftragswert",
+      },
+      unit: { pl: "zlecenie", en: "per job", de: "pro Auftrag" },
+      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+    },
+  ],
+
+  notes: [
+    {
+      pl: "Tapetę kupuje klient lub jego projektant — my zajmujemy się wyłącznie montażem.",
+      en: "The wallpaper is bought by the client or their designer — we handle installation only.",
+      de: "Die Tapete kauft der Kunde oder sein Planer — wir übernehmen ausschließlich die Montage.",
+    },
+    {
+      pl: "Ściany wysokie, sufity, klatki schodowe i powierzchnie łukowe wyceniamy indywidualnie.",
+      en: "High walls, ceilings, stairwells and curved surfaces are quoted individually.",
+      de: "Hohe Wände, Decken, Treppenhäuser und gewölbte Flächen werden individuell kalkuliert.",
+    },
+    {
+      pl: "Dojazd poza okolice Siedlec doliczamy według odległości.",
+      en: "Travel beyond the Siedlce area is added according to distance.",
+      de: "Anfahrt außerhalb der Region Siedlce wird nach Entfernung berechnet.",
+    },
+  ],
+};
+
+/**
+ * The site-wide call to action, rendered under every page's content by root.jsx.
+ *
+ * It lives in siteSettings rather than on any one page document because it is
+ * the same block everywhere — as a per-page field it would be three copies to
+ * keep in step, and they would drift.
+ *
+ * The wording asks for wall dimensions and wallpaper type, which is what the
+ * business actually needs to quote. That holds on every page it appears on, so
+ * it does not need a per-page variant.
+ */
+export const CTA = {
+  heading: {
+    pl: "Potrzebujesz dokładnej wyceny?",
+    en: "Need an exact quote?",
+    de: "Brauchen Sie ein genaues Angebot?",
+  },
+  body: {
+    pl: "Napisz lub zadzwoń — podaj wymiary ściany i rodzaj tapety, a odeślemy wycenę.",
+    en: "Write or call — send the wall dimensions and the wallpaper type and we will send a quote back.",
+    de: "Schreiben oder rufen Sie an — nennen Sie Wandmaße und Tapetenart, und wir senden ein Angebot.",
+  },
+};
+
+/**
  * Per-page title suffix and meta description. Was branching logic inside
  * root.jsx's getPageMeta(); now content, seeded into Sanity and mirrored here
  * so the fallback produces byte-identical <title> and description tags.
@@ -221,6 +367,14 @@ export const PAGE_META = {
       pl: "Zdjęcia zrealizowanych montaży: fototapety, tapety wzorzyste i tekstury — w łazienkach, sypialniach, przy basenie i w przestrzeniach komercyjnych.",
       en: "Photographs of finished installations — murals, patterned and textured wallpaper in bathrooms, bedrooms, a pool area and commercial spaces.",
       de: "Fotos abgeschlossener Projekte — Fototapeten, gemusterte und strukturierte Tapeten in Bädern, Schlafzimmern, am Pool und in Gewerberäumen.",
+    },
+  },
+  pricing: {
+    suffix: { pl: "Cennik", en: "Pricing", de: "Preise" },
+    description: {
+      pl: "Cennik montażu tapet i fototapet: stawki za m², przygotowanie podłoża i zdjęcie starej tapety. Wycena indywidualna dla każdego zlecenia.",
+      en: "Pricing for wallpaper and mural installation: rates per m², surface preparation and removal of existing wallpaper. Every job quoted individually.",
+      de: "Preise für die Montage von Tapeten und Fototapeten: Sätze pro m², Untergrundvorbereitung und Entfernen alter Tapeten. Jeder Auftrag wird individuell kalkuliert.",
     },
   },
   contact: {
