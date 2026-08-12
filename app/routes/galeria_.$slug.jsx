@@ -7,9 +7,10 @@ import { PageLayout } from "../components/PageLayout";
 import { ProductImage } from "../components/ProductImage";
 
 // Two columns of photographs: ~330px each in the 670px desktop content column,
-// ~295px at tablet, ~125px at the 260px mobile width.
+// ~295px at tablet, and on mobile the viewport less the 32px gutters and the
+// 10px gap between them — see the note on TILE_SIZES in galeria.jsx.
 const PHOTO_SIZES =
-  "(min-width: 1114px) 330px, (min-width: 608px) 295px, 125px";
+  "(min-width: 1114px) 330px, (min-width: 608px) 295px, calc(50vw - 37px)";
 
 /**
  * Validates the slug so an invented category answers 404 rather than 200 with an

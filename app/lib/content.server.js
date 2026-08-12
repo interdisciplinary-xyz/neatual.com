@@ -233,6 +233,7 @@ export function fromLocales(locale) {
         expand: A11Y_LABELS.expand[locale],
         langNav: A11Y_LABELS.langNav[locale],
         mainNav: A11Y_LABELS.mainNav[locale],
+        openMenu: A11Y_LABELS.openMenu[locale],
       },
     },
   };

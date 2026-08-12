@@ -6,10 +6,16 @@ import { useContent } from "../lib/useContent";
 import { PageLayout } from "../components/PageLayout";
 import { ProductImage } from "../components/ProductImage";
 
-// Measured rendered widths, not guesses: the tile is ~115px in the 2-col mobile
-// grid, ~290px in the 2-col tablet grid, and ~216px in the 3-col desktop content
-// column.
-const TILE_SIZES = "(min-width: 1114px) 220px, (min-width: 608px) 290px, 120px";
+// Measured rendered widths, not guesses: ~290px in the 2-col tablet grid and
+// ~216px in the 3-col desktop content column.
+//
+// Mobile is a calc rather than a number because the page no longer caps its
+// content at 260px — the column is the viewport less the 32px gutters, and the
+// two tiles split it around a 10px gap. A flat "120px" here was right for the
+// old 260px frame and would now pick a 400px-wide variant for a tile rendered
+// at 158 CSS px on a 390px phone, i.e. a visibly soft image at 3x.
+const TILE_SIZES =
+  "(min-width: 1114px) 220px, (min-width: 608px) 290px, calc(50vw - 37px)";
 
 /**
  * The gallery index: one tile per category, each linking to its own page.

@@ -64,6 +64,11 @@ export const A11Y_LABELS = {
     en: "Main navigation",
     de: "Hauptnavigation",
   },
+  openMenu: {
+    pl: "Otwórz menu",
+    en: "Open menu",
+    de: "Menü öffnen",
+  },
   selectProduct: {
     pl: "{name} — wybierz, aby zobaczyć",
     en: "{name} — select to view",

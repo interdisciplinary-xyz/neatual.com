@@ -125,6 +125,12 @@ export const siteSettings = {
         localizedField({ name: "langNav", title: "Language selector" }),
         localizedField({ name: "mainNav", title: "Main navigation" }),
         localizedField({
+          name: "openMenu",
+          title: "Open the mobile menu",
+          description:
+            "The hamburger button below 608px. Icon-only on screen, so this is its whole name — a visitor using voice control says these words to press it.",
+        }),
+        localizedField({
           name: "selectProduct",
           title: "Select a product tile",
           description: "Use {name} where the product name should appear.",

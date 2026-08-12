@@ -156,6 +156,7 @@ function buildSiteSettings() {
       expand: A11Y_LABELS.expand,
       langNav: A11Y_LABELS.langNav,
       mainNav: A11Y_LABELS.mainNav,
+      openMenu: A11Y_LABELS.openMenu,
       selectProduct: A11Y_LABELS.selectProduct,
       selectPhoto: A11Y_LABELS.selectPhoto,
       photoAlt: A11Y_LABELS.photoAlt,
