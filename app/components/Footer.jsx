@@ -1,54 +1,73 @@
-import { Link, useLocation } from "@remix-run/react";
-import { useContent, navItemsFrom } from "../lib/useContent";
+import { PlayIcon, StopIcon } from "./icons";
+import { useContent } from "../lib/useContent";
 
+/**
+ * Site footer: the phone number and the email address, nothing else.
+ *
+ * This used to be the main nav, pinned `fixed bottom-0`. The nav has moved up
+ * into the header, and the contact details have come down here — where they
+ * render on every viewport rather than only from 1114px up, which is all the
+ * header had room for.
+ *
+ * Static, not fixed. The old footer was fixed because it was navigation you
+ * wanted within reach at any scroll position; a phone number is not, and a
+ * permanently docked bar would spend two lines of a 260px screen on it, since
+ * the number and the address cannot share a line at that width.
+ */
 export function Footer() {
-  const location = useLocation();
-  const pathname = location.pathname.replace(/\/$/, "") || "/";
   const content = useContent();
-  const navItems = navItemsFrom(content);
+  const settings = content?.settings;
+
+  // Nothing to show if the CMS is unreachable and the fallback copy is absent —
+  // render no landmark at all rather than an empty bar with two dead links.
+  if (!settings?.phone && !settings?.email) return null;
 
   return (
-    <footer className="fixed bottom-0 left-0 py-8 w-full bg-background tablet:py-20 z-10">
+    <footer className="w-full bg-background py-8 tablet:py-12">
       {/*
-        `desktop:max-w-[800px]` is what actually spaces the items apart. The <ul>
-        below is `justify-around`, so it always distributes the container's free
-        space across the row — adding padding or a gap to the items just converts
-        that free space into padding and the separation barely changes. Widening
-        the container is the only lever that gives the row more space to hand out.
-
-        Still narrower than the 1114px the rest of the page uses: at full page
-        width four short labels drift so far apart they stop reading as one nav.
-
-        `tablet:max-w-lg` used to sit here too, immediately overridden by
-        `tablet:max-w-[608px]` on the same breakpoint. Removed — it never applied.
+        Full-bleed with the same `px-[48px]` as the header, so the two bars line
+        up at both edges and read as one frame around the page. See the note in
+        Header.jsx on why 48px is an arbitrary value rather than a scale step.
       */}
-      <nav
-        className="mobile:max-w-[260px] tablet:max-w-[608px] desktop:max-w-[800px] mx-auto px-4"
-        aria-label={content?.settings.a11y.mainNav}
-      >
-        <ul className="flex mobile:justify-around">
-          {navItems.map((item) => {
-            const itemPath = item.link.replace(/\/$/, "") || "/";
-            const isActive = pathname === itemPath;
-
-            return (
-              <li key={item.link}>
-                <Link
-                  to={item.link}
-                  className={`text-center uppercase text-14 px-2 tablet:px-5 pb-2 hover:text-black ${
-                    isActive
-                      ? "text-black border-b-2 border-black"
-                      : "text-gray-accessible"
-                  }`}
-                  aria-current={isActive ? "page" : undefined}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            );
-          })}
+      <div className="px-[48px]">
+        {/*
+          `justify-end` mirrors the header, where the contact details sat at the
+          right edge before they moved down here. `flex-wrap` for the 260px case:
+          the number and the address come to more than the usable width, so they
+          take a line each instead of forcing a horizontal scroll.
+        */}
+        <ul className="flex flex-wrap items-center justify-end gap-x-10 gap-y-4">
+          {/*
+            sr-only verb rather than aria-label, so the accessible name contains
+            the visible phone number and address (WCAG 2.5.3, Label in Name) —
+            the same pattern as the pair on the contact page.
+          */}
+          {settings?.phone && (
+            <li className="shrink-0">
+              <a
+                className="flex items-center"
+                href={`tel:${settings.phone.replace(/\s/g, "")}`}
+              >
+                <PlayIcon className="mr-8 shrink-0" aria-hidden="true" />
+                <span className="sr-only">{settings?.a11y.call}</span>
+                <span className="text-14">{settings.phone}</span>
+              </a>
+            </li>
+          )}
+          {settings?.email && (
+            <li className="shrink-0">
+              <a
+                className="flex items-center"
+                href={`mailto:${settings.email}`}
+              >
+                <StopIcon className="mr-8 shrink-0" aria-hidden="true" />
+                <span className="sr-only">{settings?.a11y.email}</span>
+                <span className="text-14">{settings.email}</span>
+              </a>
+            </li>
+          )}
         </ul>
-      </nav>
+      </div>
     </footer>
   );
 }

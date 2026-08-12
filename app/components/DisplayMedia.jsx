@@ -54,15 +54,17 @@ const VISIBILITY = {
 
 const ORDER = ["mobile", "tablet", "desktop"];
 
-export function DisplayMedia({ displays, children }) {
+// `className` is appended to the visibility rule rather than replacing it, for
+// the cases where this wrapper is a placed element rather than a bare box.
+export function DisplayMedia({ displays, children, className = "" }) {
   const key = ORDER.filter((d) => displays.includes(d)).join("+");
-  const className = VISIBILITY[key];
+  const visibility = VISIBILITY[key];
 
-  if (className === undefined) {
+  if (visibility === undefined) {
     throw new Error(
       `DisplayMedia: no visibility rule for [${displays.join(", ")}]`
     );
   }
 
-  return <div className={className}>{children}</div>;
+  return <div className={`${visibility} ${className}`.trim()}>{children}</div>;
 }

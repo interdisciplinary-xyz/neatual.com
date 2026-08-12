@@ -16,6 +16,8 @@ import { LOCALES } from "../app/lib/locales.js";
 import { LOCALE_CODES, PAGE_KEYS, HREFLANG_URLS } from "../app/lib/seo.js";
 import { htmlToBlocks, tidy } from "../app/lib/portableText.js";
 import {
+  BRAND,
+  SKIP_LINK,
   HOME_SR_HEADING,
   A11Y_LABELS,
   CTA,
@@ -129,6 +131,9 @@ function buildSiteSettings() {
   return {
     _id: "siteSettings",
     _type: "siteSettings",
+    wordmark: BRAND.wordmark,
+    brandName: BRAND.name,
+    skipLink: byLocale((_, code) => SKIP_LINK[code]),
     phone,
     email,
     address: ADDRESS,
@@ -136,6 +141,13 @@ function buildSiteSettings() {
     callCta: byLocale((config) => config.contact.call),
     ctaHeading: byLocale((_, code) => CTA.heading[code]),
     ctaBody: byLocale((_, code) => CTA.body[code]),
+    error: {
+      notFoundHeading: byLocale((config) => config.error.notFoundHeading),
+      notFoundBody: byLocale((config) => config.error.notFoundBody),
+      errorHeading: byLocale((config) => config.error.errorHeading),
+      errorBody: byLocale((config) => config.error.errorBody),
+      backHome: byLocale((config) => config.error.backHome),
+    },
     a11y: {
       close: byLocale((config) => config.a11y.close),
       homeLink: byLocale((config) => config.a11y.homeLink),
@@ -156,6 +168,9 @@ function buildProduct(product, index) {
     _id: `product-${product.slug}`,
     _type: "product",
     order: index + 1,
+    // The URL and the image folder are seeded from the same word. They are
+    // separate fields so an editor can change one without the other.
+    slug: product.slug,
     imageBase: product.slug,
     photoCount: product.photoCount,
     name: byLocale((_, code) => product.name[code]),

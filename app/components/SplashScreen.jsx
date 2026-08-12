@@ -1,4 +1,5 @@
 import { LogoIcon } from "./icons";
+import { BRAND } from "../lib/inlineCopy";
 
 /**
  * The first-visit splash, shown once per session.
@@ -18,12 +19,17 @@ import { LogoIcon } from "./icons";
  * accessibility tree behind it, so screen-reader and keyboard users are never
  * gated on the animation finishing, and there is nothing focusable in here to
  * trap a tab.
+ *
+ * The wordmark arrives as a prop rather than through useContent(): this renders
+ * before anything else on the page and must not depend on a router context, and
+ * the default keeps it rendering in isolation — which is how the spec exercises
+ * it. root.jsx passes the CMS value.
  */
-export function SplashScreen() {
+export function SplashScreen({ wordmark = BRAND.wordmark }) {
   return (
     <div className="splash" aria-hidden="true">
       <LogoIcon className="splash-mark" />
-      <span className="splash-wordmark font-logo">neatual.com</span>
+      <span className="splash-wordmark font-logo">{wordmark}</span>
     </div>
   );
 }

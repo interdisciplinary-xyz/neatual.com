@@ -8,6 +8,8 @@ import {
 } from "./seo.js";
 import { htmlToBlocks, tidy } from "./portableText.js";
 import {
+  BRAND,
+  SKIP_LINK,
   HOME_SR_HEADING,
   A11Y_LABELS,
   CTA,
@@ -26,10 +28,12 @@ export const CONTENT_QUERY = `{
     pricingIsPlaceholder, pricingIntro, pricingRows, pricingNotes
   },
   "products": *[_type == "product"] | order(order asc){
-    order, imageBase, photoCount, name, price, descriptionLines, alt
+    order, slug, imageBase, photoCount, name, price, descriptionLines, alt,
+    intro, metaTitle, metaDescription
   },
   "settings": *[_type == "siteSettings"][0]{
-    phone, email, address, messageCta, callCta, ctaHeading, ctaBody, a11y
+    wordmark, brandName, skipLink, phone, email, address, messageCta, callCta,
+    ctaHeading, ctaBody, error, a11y
   }
 }`;
 
@@ -75,13 +79,63 @@ function pricingFrom(page, locale, resolve) {
 }
 
 /**
- * The site-wide CTA. Lives on siteSettings, not on a page, because root.jsx
- * renders it under every route — see CTA in inlineCopy.js.
+ * The site-wide CTA. Lives on siteSettings, not on a page. Nothing renders it
+ * since the call to action was taken off the pages — the field is kept so the
+ * copy stays written and editable, and so restoring the block is a component
+ * rather than a content migration.
  */
 function ctaFrom(settings, locale, resolve) {
   return {
     heading: resolve(settings?.ctaHeading) ?? CTA.heading[locale],
     body: resolve(settings?.ctaBody) ?? CTA.body[locale],
+  };
+}
+
+/** The 404 and 500 copy, from the CMS where it exists and locales.js where it doesn't. */
+function errorFrom(settings, locale, resolve) {
+  const bundled = (LOCALES[locale] ?? LOCALES[DEFAULT_LOCALE]).error;
+  return Object.fromEntries(
+    Object.keys(bundled).map((key) => [
+      key,
+      resolve(settings?.error?.[key]) ?? bundled[key],
+    ])
+  );
+}
+
+/**
+ * One gallery category, in the shape both resolvers return.
+ *
+ * `slug` falls back to `imageBase` so the six documents seeded before the slug
+ * field existed keep their current URLs. The two are separate fields because one
+ * is a published address and the other is a folder on disk: renaming a category
+ * in the Studio should not require moving image files, and moving image files
+ * should not 404 a page Google has indexed.
+ *
+ * `metaTitle` and `metaDescription` are composed when the CMS leaves them empty,
+ * from copy that already exists in all three languages. Six category pages
+ * inheriting the gallery's title would be six pages competing for one query;
+ * composing a title here means an editor gets a reasonable one by default and a
+ * deliberate one whenever they write it.
+ */
+function categoryFrom(product, locale, resolve, siteTitle) {
+  const name = resolve(product.name);
+  const alt = resolve(product.alt);
+  const descriptionLines = resolve(product.descriptionLines) ?? [];
+
+  return {
+    order: product.order,
+    slug: product.slug ?? product.imageBase,
+    imageBase: product.imageBase,
+    photoCount: product.photoCount ?? 4,
+    name,
+    price: resolve(product.price),
+    descriptionLines,
+    alt,
+    intro: resolve(product.intro) ?? null,
+    metaTitle: resolve(product.metaTitle) ?? `${siteTitle} — ${name}`,
+    metaDescription:
+      resolve(product.metaDescription) ??
+      [alt, ...descriptionLines].filter(Boolean).join(". ") + ".",
   };
 }
 
@@ -126,15 +180,26 @@ export function fromLocales(locale) {
     })
   );
 
-  const products = PRODUCTS.map((product, index) => ({
-    order: index + 1,
-    imageBase: product.slug,
-    photoCount: product.photoCount,
-    name: product.name[locale],
-    price: PRODUCT_SHARED.price[locale],
-    descriptionLines: PRODUCT_SHARED.descriptionLines[locale],
-    alt: product.alt[locale],
-  }));
+  // Shaped like a Sanity product document and put through the same resolver, so
+  // the composed meta and the slug fallback cannot behave differently depending
+  // on which source answered.
+  const products = PRODUCTS.map((product, index) =>
+    categoryFrom(
+      {
+        order: index + 1,
+        slug: product.slug,
+        imageBase: product.slug,
+        photoCount: product.photoCount,
+        name: product.name[locale],
+        price: PRODUCT_SHARED.price[locale],
+        descriptionLines: PRODUCT_SHARED.descriptionLines[locale],
+        alt: product.alt[locale],
+      },
+      locale,
+      (value) => value,
+      config.title
+    )
+  );
 
   return {
     source: "locales",
@@ -144,9 +209,13 @@ export function fromLocales(locale) {
     // bundled PRICING copy, which is the whole point of this branch.
     pricing: pricingFrom({}, locale, () => undefined),
     cta: ctaFrom(null, locale, () => undefined),
+    error: errorFrom(null, locale, () => undefined),
     products,
     paths: HREFLANG_URLS,
     settings: {
+      wordmark: BRAND.wordmark,
+      brandName: BRAND.name,
+      skipLink: SKIP_LINK[locale],
       phone: config.contact.phone,
       email: config.contact.email,
       address: ADDRESS,
@@ -198,15 +267,17 @@ export function fromSanity(data, locale) {
     ])
   );
 
-  const products = (data.products ?? []).map((p) => ({
-    order: p.order,
-    imageBase: p.imageBase,
-    photoCount: p.photoCount ?? 4,
-    name: localized(p.name, locale),
-    price: localized(p.price, locale),
-    descriptionLines: localized(p.descriptionLines, locale) ?? [],
-    alt: localized(p.alt, locale),
-  }));
+  const resolve = (value) => localized(value, locale);
+
+  // The composed category title reads "<site title> — <category>", and the site
+  // title is the home page's meta title in the CMS. Falls back to the bundled
+  // one only if the home document has no title for this locale.
+  const siteTitle =
+    pages.home?.metaTitle ?? (LOCALES[locale] ?? LOCALES[DEFAULT_LOCALE]).title;
+
+  const products = (data.products ?? []).map((p) =>
+    categoryFrom(p, locale, resolve, siteTitle)
+  );
 
   const s = data.settings;
   return {
@@ -216,12 +287,16 @@ export function fromSanity(data, locale) {
     pricing: pricingFrom(
       data.pages.find((p) => p.pageKey === "pricing"),
       locale,
-      (value) => localized(value, locale)
+      resolve
     ),
-    cta: ctaFrom(s, locale, (value) => localized(value, locale)),
+    cta: ctaFrom(s, locale, resolve),
+    error: errorFrom(s, locale, resolve),
     products,
     paths,
     settings: {
+      wordmark: s.wordmark ?? BRAND.wordmark,
+      brandName: s.brandName ?? BRAND.name,
+      skipLink: resolve(s.skipLink) ?? SKIP_LINK[locale],
       phone: s.phone,
       email: s.email,
       address: s.address,

@@ -6,6 +6,26 @@
  * depending on which source answered.
  */
 
+/**
+ * The brand as it is written on the page, previously three string literals in
+ * Header, SplashScreen, _index and kontakt.
+ *
+ * Not localized: it is a name. It is here rather than left inline because the
+ * site spent two commits rendering "netual" in one of those four places, which
+ * is exactly what a single source prevents.
+ */
+export const BRAND = {
+  wordmark: "neatual.com",
+  name: "neatual",
+};
+
+/** The skip-to-content link, previously an inline ternary in app/root.jsx. */
+export const SKIP_LINK = {
+  pl: "Przejdź do treści",
+  en: "Skip to main content",
+  de: "Zum Inhalt springen",
+};
+
 /** The home page's visually hidden <h1>, previously inline in app/routes/_index.jsx. */
 export const HOME_SR_HEADING = {
   pl: "Neatual — montaż tapet w całej Polsce",

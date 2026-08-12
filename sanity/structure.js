@@ -13,11 +13,11 @@ export const structure = (S) =>
       S.divider(),
       S.documentTypeListItem("page").title("Pages"),
       S.listItem()
-        .title("Products")
+        .title("Gallery categories")
         .schemaType("product")
         .child(
           S.documentTypeList("product")
-            .title("Products")
+            .title("Gallery categories")
             .defaultOrdering([{ field: "order", direction: "asc" }])
         ),
     ]);

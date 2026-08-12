@@ -1,6 +1,17 @@
 export function LogoIcon({ className = "", ...props }) {
   return (
+    /*
+      `viewBox` is load-bearing and was missing. Without it, `width`/`height`
+      resize the SVG *viewport* but never scale the artwork, which stays at its
+      natural 44x55 user units — so any box smaller than that crops the mark
+      (the header's 20px box cut it in half) and any box larger than it strands
+      the mark in the top-left corner at 44x55.
+
+      public/favicon.svg has always carried `viewBox="0 0 44 55"`, which is why
+      the favicon scaled correctly while this component did not. Same numbers.
+    */
     <svg
+      viewBox="0 0 44 55"
       width="44"
       height="55"
       fill="none"

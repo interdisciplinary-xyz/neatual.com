@@ -1,3 +1,4 @@
+import { PageLayout } from "../components/PageLayout";
 import { useContent } from "../lib/useContent";
 
 /**
@@ -18,10 +19,7 @@ export default function PricingPage() {
   const pricing = content?.pricing;
 
   return (
-    <article className="pt-36 pb-12 mobile:max-w-[260px] tablet:max-w-[608px] tablet:pt-48 desktop:max-w-[1114px] mx-auto px-4 desktop:pt-80">
-      {/* Matches the other routes: the design carries no visible page title. */}
-      <h1 className="sr-only">{page?.srHeading}</h1>
-
+    <PageLayout srHeading={page?.srHeading}>
       {pricing?.isPlaceholder && (
         <p
           role="status"
@@ -39,7 +37,9 @@ export default function PricingPage() {
       {/*
         `overflow-x-auto` on the wrapper, not the table. At 260px the three
         columns cannot fit, and without this the table forces the whole page to
-        scroll sideways — the one thing the layout must never do.
+        scroll sideways — the one thing the layout must never do. It carries the
+        desktop case too now that the table lives in a 338px grid column rather
+        than the full page width; see the `min-w-0` note in PageLayout.
       */}
       <div className="overflow-x-auto mb-10">
         <table className="w-full text-14 border-collapse">
@@ -78,7 +78,7 @@ export default function PricingPage() {
         </table>
       </div>
 
-      <ul className="text-14 text-content mb-16 max-w-prose">
+      <ul className="text-14 text-content max-w-prose">
         {(pricing?.notes ?? []).map((note) => (
           <li key={note} className="mb-3 pl-4 -indent-4">
             <span aria-hidden="true">— </span>
@@ -86,11 +86,6 @@ export default function PricingPage() {
           </li>
         ))}
       </ul>
-
-      {/*
-        No CTA here any more — root.jsx renders ContactCta under every route, so
-        keeping one on this page too would show it twice.
-      */}
-    </article>
+    </PageLayout>
   );
 }
