@@ -1,6 +1,13 @@
-import { Link, useParams } from "@remix-run/react";
+import { redirect } from "@remix-run/node";
+import { Link, useLocation, useParams } from "@remix-run/react";
 import { getLocaleFromPath } from "../lib/locales";
 import { fillTemplate } from "../lib/inlineCopy";
+import {
+  findBySlug,
+  findByAnySlug,
+  galleryCategoryPath,
+  servicePath,
+} from "../lib/seo";
 import { getContent } from "../lib/content.server";
 import { useContent } from "../lib/useContent";
 import { PageLayout } from "../components/PageLayout";
@@ -13,8 +20,18 @@ const PHOTO_SIZES =
   "(min-width: 1114px) 330px, (min-width: 608px) 295px, calc(50vw - 37px)";
 
 /**
- * Validates the slug so an invented category answers 404 rather than 200 with an
- * empty page — a soft 404 is the version search engines index and keep.
+ * Resolves the slug against *this locale's* addresses, and decides between
+ * rendering, redirecting and 404ing.
+ *
+ * Three outcomes, in order:
+ *
+ * 1. The segment is this locale's slug for a category — render it.
+ * 2. The segment is some other locale's slug, or the pre-translation slug the
+ *    page shipped with (/galeria/kwiatowe) — 301 to the right address. Both are
+ *    real links that existed or could exist; a 404 would throw away a visitor
+ *    and, for the second case, an indexed URL.
+ * 3. Neither — 404, so an invented category does not answer 200 with an empty
+ *    page. A soft 404 is the version search engines index and keep.
  *
  * This is a second CMS round-trip on top of the root loader's, which is the
  * price of the check: loaders cannot read each other's data, and validating
@@ -24,19 +41,37 @@ const PHOTO_SIZES =
 export async function loader({ params, request }) {
   const locale = getLocaleFromPath(new URL(request.url).pathname);
   const content = await getContent(locale);
-  const exists = content.products?.some((p) => p.slug === params.slug);
-  if (!exists) {
-    throw new Response(null, { status: 404, statusText: "Not Found" });
+
+  if (findBySlug(content.products, locale, params.slug)) return null;
+
+  const elsewhere = findByAnySlug(content.products, params.slug);
+  if (elsewhere) {
+    throw redirect(galleryCategoryPath(locale, elsewhere, content.paths), 301);
   }
-  return null;
+
+  throw new Response(null, { status: 404, statusText: "Not Found" });
 }
 
 export default function GalleryCategoryPage() {
   const { slug } = useParams();
+  const { pathname } = useLocation();
   const content = useContent();
-  const category = content?.products?.find((p) => p.slug === slug);
+  const locale = getLocaleFromPath(pathname);
+  // Matched the same way the loader matched it — against this locale's slug,
+  // not the canonical id, which no longer appears in any URL.
+  const category = findBySlug(content?.products, locale, slug);
   const a11y = content?.settings.a11y;
   const gallery = content?.pages.gallery;
+
+  // The first service that lists this category, with its path in this locale.
+  // First rather than all: one contextual link reads as a route onward, four
+  // read as a link farm.
+  const related = content?.services?.find((s) =>
+    s.categories?.includes(category?.slug)
+  );
+  const service = related
+    ? { name: related.name, path: servicePath(locale, related, content?.paths) }
+    : null;
 
   // The loader has already 404'd an unknown slug. This guards the narrow case
   // where the two fetches disagreed — the loader got a CMS response listing this
@@ -68,6 +103,22 @@ export default function GalleryCategoryPage() {
         ))}
       </p>
       <p className="font-bold text-16 mb-8">{category.price}</p>
+
+      {/*
+        The link up to the service this category illustrates — the spoke half of
+        the hub and spoke. Without it these six pages linked only to the gallery
+        index and to nothing that ranks, which is most of why they had no
+        standing of their own. Resolved by reference rather than stored per
+        category, so a service that adds this category to its list picks up the
+        inbound link here with no edit to this page.
+      */}
+      {service && (
+        <p className="text-14 mb-4">
+          <Link to={service.path} className="underline hover:no-underline">
+            {service.name}
+          </Link>
+        </p>
+      )}
 
       {/*
         Back to the index, in the current locale — `gallery.path` rather than a

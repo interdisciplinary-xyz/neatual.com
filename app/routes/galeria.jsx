@@ -39,10 +39,11 @@ export default function GalleryPage() {
     () =>
       (content?.products ?? []).map((product) => ({
         ...product,
-        // `slug` addresses the page, `imageBase` addresses the folder. They hold
-        // the same word today and are separate fields on purpose — see
-        // categoryFrom() in content.server.js.
-        to: galleryCategoryPath(locale, product.slug, content?.paths),
+        // `slugs` addresses the page — one per locale — and `imageBase`
+        // addresses the folder. Separate fields on purpose: see categoryFrom()
+        // in content.server.js. The whole category goes to
+        // galleryCategoryPath, which picks this locale's slug out of it.
+        to: galleryCategoryPath(locale, product, content?.paths),
         thumbnailBase: `/gallery/${product.imageBase}/${product.imageBase}-1`,
       })),
     [content, locale]

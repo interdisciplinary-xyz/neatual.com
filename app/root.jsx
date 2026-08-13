@@ -10,6 +10,7 @@ import {
   useLocation,
   useRouteError,
 } from "@remix-run/react";
+import { ProgressProvider } from "@bprogress/remix";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { SplashScreen } from "./components/SplashScreen";
@@ -21,7 +22,10 @@ import {
   DEFAULT_LOCALE,
   getPageKey,
   getGalleryCategorySlug,
+  getServiceSlug,
   galleryCategoryPath,
+  servicePath,
+  findBySlug,
 } from "./lib/seo";
 import { getContent } from "./lib/content.server";
 import { useContent } from "./lib/useContent";
@@ -48,9 +52,18 @@ function canonicalFor(pathname) {
 
 /** The category a gallery path points at, or null. */
 function categoryFor(pathname, content) {
-  const slug = getGalleryCategorySlug(pathname);
-  if (!slug) return null;
-  return content?.products?.find((p) => p.slug === slug) ?? null;
+  const segment = getGalleryCategorySlug(pathname);
+  if (!segment) return null;
+  // Matched against this locale's slug: /de/galerie/montage-blumen-fototapeten
+  // is the German address, and the Polish one is a different string entirely.
+  return findBySlug(content?.products, getLocaleFromPath(pathname), segment);
+}
+
+/** The service a services path points at, or null for the hub. */
+function serviceFor(pathname, content) {
+  const segment = getServiceSlug(pathname);
+  if (!segment) return null;
+  return findBySlug(content?.services, getLocaleFromPath(pathname), segment);
 }
 
 /**
@@ -58,23 +71,28 @@ function categoryFor(pathname, content) {
  * root loader itself failed — Remix still renders meta for the ErrorBoundary —
  * so fall back to the bundled copy rather than emitting an empty <title>.
  *
- * Category pages take the gallery's `page` key but not its title and
- * description. Both come from the category document in Sanity, which composes
- * them from the name, alt text and description lines when an editor has not
- * written them — see categoryFrom() in content.server.js, so the composition
- * happens once for the page, the sitemap and anything else that asks.
+ * Category and service pages take their section's `page` key — "gallery" and
+ * "services" — but not its title and description. Both come from the category
+ * or service document in Sanity, which composes them from the name and the
+ * intro when an editor has not written them — see categoryFrom() and
+ * serviceFrom() in content.server.js, so the composition happens once for the
+ * page, the sitemap and anything else that asks.
+ *
+ * `entry` is that document, returned rather than its slug because the hreflang
+ * links need to ask it for a *different* locale's address than the one being
+ * rendered. A slug string could not answer that.
  */
 function getPageMeta(pathname, content) {
   const locale = getLocaleFromPath(pathname);
   const page = getPageKey(pathname);
   const cmsPage = content?.pages?.[page];
-  const category = categoryFor(pathname, content);
+  const entry = categoryFor(pathname, content) ?? serviceFor(pathname, content);
 
-  const title = category
-    ? category.metaTitle
+  const title = entry
+    ? entry.metaTitle
     : (cmsPage?.metaTitle ?? LOCALES[locale].title);
-  const description = category
-    ? category.metaDescription
+  const description = entry
+    ? entry.metaDescription
     : (cmsPage?.metaDescription ?? LOCALES[locale].description);
 
   return {
@@ -83,7 +101,7 @@ function getPageMeta(pathname, content) {
     canonical: canonicalFor(pathname),
     locale: LOCALES[locale].lang,
     page,
-    categorySlug: category ? category.slug : null,
+    entry: entry ?? null,
   };
 }
 
@@ -112,7 +130,7 @@ const ORGANISATION_ID = `${SITE_URL}/#organization`;
 function structuredData(pathname, content) {
   const locale = getLocaleFromPath(pathname);
   const config = LOCALES[locale];
-  const { canonical, title, description, page } = getPageMeta(
+  const { canonical, title, description, page, entry } = getPageMeta(
     pathname,
     content
   );
@@ -154,22 +172,53 @@ function structuredData(pathname, content) {
     },
   };
 
+  // The gallery index and its category pages are both collections of
+  // photographs. The services hub is a collection of services; a single service
+  // page is not a collection of anything, so it is a WebPage carrying the
+  // `Service` node below.
+  //
   // `pricing` deliberately falls through to WebPage. schema.org has no pricing
   // page type, and the tempting alternative — emitting Offer/PriceSpecification
   // nodes — would publish the rate table as machine-readable structured data.
   // While those rates are placeholders that is precisely how a fabricated price
   // ends up quoted in a search result. Revisit once real rates are entered.
   const pageType =
-    page === "gallery"
+    page === "gallery" || (page === "services" && !entry)
       ? "CollectionPage"
       : page === "contact"
         ? "ContactPage"
         : "WebPage";
 
+  /*
+    A `Service` node on the six service pages, and only there.
+
+    It carries what is actually known — the name, the description already
+    written for the page, who provides it and where — and deliberately no
+    `offers` or `priceSpecification`. The rates are placeholders (see PRICING in
+    inlineCopy.js), and structured data is precisely the route by which a
+    fabricated price ends up quoted in a search result. Revisit alongside the
+    noindex on /cennik, once real numbers are entered.
+  */
+  const service =
+    page === "services" && entry
+      ? [
+          {
+            "@type": "Service",
+            "@id": `${canonical}#service`,
+            name: entry.name,
+            description: entry.metaDescription,
+            serviceType: entry.name,
+            provider: { "@id": ORGANISATION_ID },
+            areaServed: "PL",
+          },
+        ]
+      : [];
+
   return {
     "@context": "https://schema.org",
     "@graph": [
       organisation,
+      ...service,
       {
         "@type": pageType,
         "@id": `${canonical}#page`,
@@ -248,20 +297,22 @@ export const meta = ({ data, location }) => {
  * tags without a deploy. `HREFLANG_URLS` remains the fallback for the case where
  * the loader could not reach Sanity.
  *
- * On a category page the alternates are that same category in the other two
- * locales, not the gallery index. Pointing them at the index would tell Google
- * the Polish floral page and the German gallery listing are translations of each
- * other, and reciprocity would fail in both directions.
+ * On a category or service page the alternates are that same document in the
+ * other two locales, not the section index. Pointing them at the index would
+ * tell Google the Polish floral page and the German gallery listing are
+ * translations of each other, and reciprocity would fail in both directions.
+ *
+ * Now that the slugs are translated, each alternate is a different string —
+ * /galeria/montaz-fototapet-kwiatowych against
+ * /de/galerie/montage-blumen-fototapeten — which is exactly why `entry` is the
+ * whole document rather than one locale's slug.
  */
-function getAlternatePaths(
-  pathname,
-  paths = HREFLANG_URLS,
-  categorySlug = null
-) {
+function getAlternatePaths(pathname, paths = HREFLANG_URLS, entry = null) {
   const page = getPageKey(pathname);
+  const pathFor = page === "services" ? servicePath : galleryCategoryPath;
   const hrefFor = (code) =>
-    categorySlug
-      ? `${SITE_URL}${galleryCategoryPath(code, categorySlug, paths)}`
+    entry
+      ? `${SITE_URL}${pathFor(code, entry, paths)}`
       : `${SITE_URL}${paths[code]?.[page] ?? HREFLANG_URLS[code][page]}`;
   return [
     { rel: "alternate", hreflang: "pl", href: hrefFor("pl") },
@@ -299,8 +350,8 @@ export default function App() {
   const { pathname, content } = useLoaderData() ?? { pathname: "/" };
   const locale = getLocaleFromPath(pathname);
   const htmlLang = locale === "pl" ? "pl" : locale === "en" ? "en" : "de";
-  const { canonical, categorySlug } = getPageMeta(pathname, content);
-  const alternates = getAlternatePaths(pathname, content?.paths, categorySlug);
+  const { canonical, entry } = getPageMeta(pathname, content);
+  const alternates = getAlternatePaths(pathname, content?.paths, entry);
 
   return (
     <html lang={htmlLang} className="font-sans">
@@ -354,50 +405,92 @@ export default function App() {
         )}
       </head>
       <body className="min-h-screen bg-background text-black">
-        <SplashScreen wordmark={content?.settings.wordmark} />
         {/*
-          The skip link is the first thing a keyboard user reaches, and it is
-          page copy like any other — it comes from the CMS now rather than from
-          a three-way ternary here. content.server.js supplies the bundled text
-          if Sanity is unreachable, so it is never empty.
-        */}
-        <a href="#main-content" className="skip-link">
-          {content?.settings.skipLink}
-        </a>
-        <Header />
-        {/*
-          `flex-1 min-w-0` is load-bearing on this wrapper. `body` is a flex
-          *row* (`display: flex` with no direction, tailwind.css), so its
-          in-flow children are columns; without a grow value each one
-          shrink-to-fits its max-content width. On text-heavy routes that
-          happens to fill the viewport, but on /galeria — where every visible
-          element is either absolutely positioned or gated behind `desktop:` —
-          max-content was 38px, collapsing the product grid to 0-width columns
-          and rendering the tiles as their 4px borders alone on every viewport
-          under 1114px. See docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md §2.4.
+          A GitHub-style bar across the top of the viewport while a client-side
+          navigation is in flight. Remix has no built-in pending indicator, so
+          between the click and the next route's loader resolving the page just
+          sits there — on a slow connection that reads as a dead link, and the
+          visitor clicks again.
 
-          The wrapper exists so <main> and <footer> stack vertically. Dropped
-          straight into `body` they would sit side by side as two columns of
-          that row. `flex-1` on <main> inside it is what pins the footer to the
-          bottom of a short page.
+          `color` and `height` are props rather than CSS because BProgress emits
+          its stylesheet from them; overriding it from tailwind.css would mean
+          fighting an inline <style> this component renders itself. Black to
+          match the chrome — the library's default is a bright blue that belongs
+          to no palette on this site.
+
+          The default template is a bar, a "peg" (a transparent block whose only
+          job is a 10px glow in the bar colour) and a corner spinner. Both are
+          nprogress-era decoration: the glow reads as a smudge in black, and a
+          spinner on a site that already opens with the splash is one loading
+          signal too many. The template here is the bar alone, `aria-hidden`
+          because its width is animated by script and carries no aria-valuenow —
+          a progressbar role that never reports a value is worse than none.
+
+          Anchor clicks are how it starts: BProgress attaches to every <a> in
+          the document, which covers the CMS-driven nav and any Link a route
+          renders, without either having to know this exists. It skips tel: and
+          mailto: — both of which the contact page has — target="_blank", and
+          modified clicks, so the bar does not run for a navigation that never
+          happens. It stops on the location change, which is why this sits
+          inside the route tree rather than beside it.
         */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          <main
-            id="main-content"
-            className="flex-1 min-w-0 flex flex-col pb-16 tablet:pb-24"
-            tabIndex={-1}
-          >
-            {/*
-              The CTA used to render here, under every route. It is now the
-              third column of PageLayout, which every route renders into — still
-              one place, but inside the page grid rather than in a band beneath
-              it. /kontakt no longer shows the two buttons twice, because its own
-              pair *was* that column and has gone.
-            */}
-            <Outlet />
-          </main>
-          <Footer />
-        </div>
+        <ProgressProvider
+          color="#000000"
+          height="3px"
+          options={{
+            showSpinner: false,
+            template: '<div class="bar" aria-hidden="true"></div>',
+          }}
+        >
+          <SplashScreen wordmark={content?.settings.wordmark} />
+          {/*
+            The skip link is the first thing a keyboard user reaches, and it is
+            page copy like any other — it comes from the CMS now rather than from
+            a three-way ternary here. content.server.js supplies the bundled text
+            if Sanity is unreachable, so it is never empty.
+          */}
+          <a href="#main-content" className="skip-link">
+            {content?.settings.skipLink}
+          </a>
+          <Header />
+          {/*
+            `flex-1 min-w-0` is load-bearing on this wrapper. `body` is a flex
+            *row* (`display: flex` with no direction, tailwind.css), so its
+            in-flow children are columns; without a grow value each one
+            shrink-to-fits its max-content width. On text-heavy routes that
+            happens to fill the viewport, but on /galeria — where every visible
+            element is either absolutely positioned or gated behind `desktop:` —
+            max-content was 38px, collapsing the product grid to 0-width columns
+            and rendering the tiles as their 4px borders alone on every viewport
+            under 1114px. See docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md §2.4.
+
+            The wrapper exists so <main> and <footer> stack vertically. Dropped
+            straight into `body` they would sit side by side as two columns of
+            that row. `flex-1` on <main> inside it is what pins the footer to the
+            bottom of a short page.
+
+            ProgressProvider adds no element of its own here beyond a <style>,
+            which `display: none` keeps out of that row — the wrapper is still
+            the only grow-able column.
+          */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <main
+              id="main-content"
+              className="flex-1 min-w-0 flex flex-col pb-16 tablet:pb-24"
+              tabIndex={-1}
+            >
+              {/*
+                The CTA used to render here, under every route. It is now the
+                third column of PageLayout, which every route renders into —
+                still one place, but inside the page grid rather than in a band
+                beneath it. /kontakt no longer shows the two buttons twice,
+                because its own pair *was* that column and has gone.
+              */}
+              <Outlet />
+            </main>
+            <Footer />
+          </div>
+        </ProgressProvider>
         <ScrollRestoration />
         <Scripts />
       </body>

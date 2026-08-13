@@ -124,16 +124,41 @@ async function check() {
         report(`${locale}/error`, key, cms.error?.[key], local.error[key]);
       }
     }
+    // The labels around every service page's content, and the three headings on
+    // the price table. Both resolve per key rather than as a whole object, so a
+    // single untranslated label is drift the check has to see individually.
+    for (const key of Object.keys(local.serviceLabels ?? {})) {
+      if (cms.serviceLabels?.[key] !== local.serviceLabels[key]) {
+        report(
+          `${locale}/serviceLabels`,
+          key,
+          cms.serviceLabels?.[key],
+          local.serviceLabels[key]
+        );
+      }
+    }
+    for (const key of Object.keys(local.pricing?.columns ?? {})) {
+      if (cms.pricing?.columns?.[key] !== local.pricing.columns[key]) {
+        report(
+          `${locale}/pricing.columns`,
+          key,
+          cms.pricing?.columns?.[key],
+          local.pricing.columns[key]
+        );
+      }
+    }
     for (const [i, product] of local.products.entries()) {
       const other = cms.products[i];
-      // `slug` is what the URL is built from, so drift here is a dead link
-      // rather than a wording difference — it is checked with the copy.
+      // `slug` is the reference id and `slugs[locale]` is what the URL is built
+      // from, so drift in either is a dead link or a broken cross-reference
+      // rather than a wording difference — both are checked with the copy.
       for (const field of [
         "slug",
         "imageBase",
         "name",
         "price",
         "alt",
+        "intro",
         "metaTitle",
         "metaDescription",
       ]) {
@@ -145,6 +170,57 @@ async function check() {
             product[field]
           );
         }
+      }
+      // `slugs` is the one field carried as a whole {pl,en,de} map rather than
+      // resolved, because hreflang needs every locale's address at once. Compare
+      // the entry for the locale under test, not the object.
+      if (product.slugs?.[locale] !== other?.slugs?.[locale]) {
+        report(
+          `${locale}/product[${i}]`,
+          "slugs",
+          other?.slugs?.[locale],
+          product.slugs?.[locale]
+        );
+      }
+    }
+
+    for (const [i, service] of (local.services ?? []).entries()) {
+      const other = cms.services?.[i];
+      for (const field of [
+        "slug",
+        "pricingKey",
+        "name",
+        "intro",
+        "metaTitle",
+        "metaDescription",
+      ]) {
+        if (service[field] !== other?.[field]) {
+          report(
+            `${locale}/service[${i}]`,
+            field,
+            other?.[field],
+            service[field]
+          );
+        }
+      }
+      if (service.slugs?.[locale] !== other?.slugs?.[locale]) {
+        report(
+          `${locale}/service[${i}]`,
+          "slugs",
+          other?.slugs?.[locale],
+          service.slugs?.[locale]
+        );
+      }
+      // Arrays, so compared as joined strings — a scope line added on one side
+      // and not the other is drift the same way a changed word is.
+      const scope = (list) => (list ?? []).join(" | ");
+      if (scope(service.scope) !== scope(other?.scope)) {
+        report(
+          `${locale}/service[${i}]`,
+          "scope",
+          scope(other?.scope),
+          scope(service.scope)
+        );
       }
     }
   }
@@ -164,7 +240,7 @@ async function check() {
 /** Editable projection: one entry per document, localized fields kept together. */
 async function pull(file) {
   const docs = await client.fetch(
-    `*[_type in ["page","siteSettings","product"]]|order(_type asc, order asc, pageKey asc)`
+    `*[_type in ["page","siteSettings","product","service"]]|order(_type asc, order asc, pageKey asc)`
   );
   const out = docs.map((doc) => {
     const { _rev, _createdAt, _updatedAt, ...rest } = doc;

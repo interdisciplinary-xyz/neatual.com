@@ -87,6 +87,32 @@ export const siteSettings = {
       of: { type: "text", rows: 3 },
     }),
     {
+      name: "serviceLabels",
+      title: "Service page labels",
+      type: "object",
+      description:
+        "The fixed headings and links every service page renders around its own content. One set for all six pages — as per-service fields they would be six copies to keep in step, and they would drift.",
+      options: { collapsible: true, collapsed: true },
+      fields: [
+        localizedField({
+          name: "scopeHeading",
+          title: "‘What the work covers’ heading",
+        }),
+        localizedField({
+          name: "galleryHeading",
+          title: "‘See completed work’ heading",
+        }),
+        localizedField({
+          name: "pricingLink",
+          title: "Link to the price list",
+        }),
+        localizedField({
+          name: "backToServices",
+          title: "‘All services’ back link",
+        }),
+      ],
+    },
+    {
       name: "error",
       title: "Error pages",
       type: "object",

@@ -31,6 +31,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@bprogress/remix": "^1.0.19",
     "@portabletext/react": "^6.2.0",
     "@remix-run/express": "^2.15.0",
     "@remix-run/node": "^2.15.0",
