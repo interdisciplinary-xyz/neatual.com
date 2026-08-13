@@ -6,6 +6,7 @@ export const LOCALES = {
       "Wieszamy tapety i fototapety w całej Polsce: wzory kwiatowe, pejzaże, tekstury. Montaż na miejscu, w domach i wnętrzach komercyjnych.",
     navItems: [
       { label: "Główna", link: "/" },
+      { label: "Usługi", link: "/uslugi" },
       { label: "Galeria", link: "/galeria" },
       { label: "Cennik", link: "/cennik" },
       { label: "Kontakt", link: "/kontakt" },
@@ -35,6 +36,7 @@ export const LOCALES = {
       selectPhoto: (n) => `Pokaż zdjęcie ${n}`,
     },
     headings: {
+      services: "Montaż tapet i fototapet",
       gallery: "Zrealizowane montaże tapet",
       pricing: "Cennik montażu tapet",
       contact: "Kontakt",
@@ -56,6 +58,7 @@ export const LOCALES = {
       "We hang wallpaper across Poland — murals, patterns and textured coverings. Installed on site, in homes and commercial interiors.",
     navItems: [
       { label: "Home", link: "/en" },
+      { label: "Services", link: "/en/services" },
       { label: "Gallery", link: "/en/gallery" },
       { label: "Pricing", link: "/en/pricing" },
       { label: "Contact", link: "/en/contact" },
@@ -86,6 +89,7 @@ export const LOCALES = {
       selectPhoto: (n) => `Show photo ${n}`,
     },
     headings: {
+      services: "Wallpaper and mural installation",
       gallery: "Completed wallpaper installations",
       pricing: "Wallpaper installation pricing",
       contact: "Contact",
@@ -107,6 +111,7 @@ export const LOCALES = {
       "Wir tapezieren in ganz Polen — Fototapeten, Muster und strukturierte Tapeten. Montage vor Ort, in Wohnräumen und Gewerbeobjekten.",
     navItems: [
       { label: "Zuhause", link: "/de" },
+      { label: "Leistungen", link: "/de/leistungen" },
       { label: "Galerie", link: "/de/galerie" },
       { label: "Preise", link: "/de/preise" },
       { label: "Kontakte", link: "/de/kontakte" },
@@ -137,6 +142,7 @@ export const LOCALES = {
       selectPhoto: (n) => `Foto ${n} anzeigen`,
     },
     headings: {
+      services: "Montage von Tapeten und Fototapeten",
       gallery: "Abgeschlossene Tapezierarbeiten",
       pricing: "Preise für Tapezierarbeiten",
       contact: "Kontakt",

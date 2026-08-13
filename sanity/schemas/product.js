@@ -23,15 +23,28 @@ export const product = {
     },
     {
       name: "slug",
-      title: "URL slug",
+      title: "Reference id",
       type: "string",
       description:
-        "The last part of the category's address: 'kwiatowe' gives /galeria/kwiatowe, /en/gallery/kwiatowe and /de/galerie/kwiatowe. One slug for all three languages. Lowercase letters, digits and hyphens only. Changing it changes a published URL — the old one will 404.",
+        "Internal name for this category, e.g. 'kwiatowe'. Not part of any address — service pages point at categories by this id, so changing it breaks those links. Lowercase letters, digits and hyphens only. Leave it alone unless you know what references it.",
       validation: (Rule) =>
         Rule.required()
           .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { name: "slug" })
           .error("Lowercase letters, digits and hyphens only."),
     },
+    localizedField({
+      name: "slugs",
+      title: "URL slug, per language",
+      description:
+        "The last part of the address, written in each language: 'montaz-fototapet-kwiatowych' gives /galeria/montaz-fototapet-kwiatowych, while the English field gives /en/gallery/<that word>. Write the phrase somebody would search for — this is the one part of the URL search engines read. Lowercase letters, digits and hyphens only, no Polish or German accented characters. Changing one changes a published URL; the old address redirects rather than breaking.",
+      of: {
+        type: "string",
+        validation: (Rule) =>
+          Rule.regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { name: "slug" }).error(
+            "Lowercase letters, digits and hyphens only — no accents."
+          ),
+      },
+    }),
     {
       name: "imageBase",
       title: "Image folder",

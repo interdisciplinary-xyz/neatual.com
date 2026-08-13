@@ -13,6 +13,14 @@ export const structure = (S) =>
       S.divider(),
       S.documentTypeListItem("page").title("Pages"),
       S.listItem()
+        .title("Services")
+        .schemaType("service")
+        .child(
+          S.documentTypeList("service")
+            .title("Services")
+            .defaultOrdering([{ field: "order", direction: "asc" }])
+        ),
+      S.listItem()
         .title("Gallery categories")
         .schemaType("product")
         .child(

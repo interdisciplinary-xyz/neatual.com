@@ -88,6 +88,20 @@ export const page = {
       of: { type: "text", rows: 3 },
     }),
     {
+      name: "pricingColumns",
+      title: "Price table column headings",
+      type: "object",
+      description:
+        "The three headings above the rate table. Separate from the rows because they are the table's structure rather than its content — an editor changing a rate should not have to retype them.",
+      options: { collapsible: true, collapsed: true },
+      hidden: ({ document }) => document?.pageKey !== "pricing",
+      fields: [
+        localizedField({ name: "service", title: "Column 1 (‘Service’)" }),
+        localizedField({ name: "unit", title: "Column 2 (‘Unit’)" }),
+        localizedField({ name: "price", title: "Column 3 (‘Rate’)" }),
+      ],
+    },
+    {
       name: "pricingRows",
       title: "Price rows",
       type: "object",

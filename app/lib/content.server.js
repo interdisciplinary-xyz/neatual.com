@@ -17,6 +17,9 @@ import {
   PRICING,
   PRODUCTS,
   PRODUCT_SHARED,
+  SERVICES,
+  SERVICE_SHARED,
+  SERVICES_INTRO,
   ADDRESS,
   formatAddress,
 } from "./inlineCopy.js";
@@ -25,19 +28,23 @@ export const CONTENT_QUERY = `{
   "pages": *[_type == "page"]{
     pageKey, path, navLabel, srHeading, metaTitle, metaDescription,
     heading, shortDescription, body,
-    pricingIsPlaceholder, pricingIntro, pricingRows, pricingNotes
+    pricingIsPlaceholder, pricingIntro, pricingColumns, pricingRows, pricingNotes
   },
   "products": *[_type == "product"] | order(order asc){
-    order, slug, imageBase, photoCount, name, price, descriptionLines, alt,
+    order, slug, slugs, imageBase, photoCount, name, price, descriptionLines, alt,
     intro, metaTitle, metaDescription
+  },
+  "services": *[_type == "service"] | order(order asc){
+    order, slug, slugs, pricingKey, categories, name, intro, scope,
+    metaTitle, metaDescription
   },
   "settings": *[_type == "siteSettings"][0]{
     wordmark, brandName, skipLink, phone, email, address, messageCta, callCta,
-    ctaHeading, ctaBody, error, a11y
+    ctaHeading, ctaBody, serviceLabels, error, a11y
   }
 }`;
 
-const NAV_INDEX = { home: 0, gallery: 1, pricing: 2, contact: 3 };
+const NAV_INDEX = { home: 0, services: 1, gallery: 2, pricing: 3, contact: 4 };
 
 /**
  * The pricing payload, in the shape both resolvers return.
@@ -60,10 +67,13 @@ function pricingFrom(page, locale, resolve) {
     // marking them as fabricated.
     placeholderNotice: PRICING.placeholderNotice[locale],
     intro: resolve(page.pricingIntro) ?? PRICING.intro[locale],
+    // Per column, not all-or-nothing: a CMS that has two of the three headings
+    // should show those two and fall back for the third, rather than discard
+    // both because the object was incomplete.
     columns: Object.fromEntries(
       Object.entries(PRICING.columns).map(([key, value]) => [
         key,
-        value[locale],
+        resolve(page.pricingColumns?.[key]) ?? value[locale],
       ])
     ),
     rows: rows.length
@@ -124,7 +134,14 @@ function categoryFrom(product, locale, resolve, siteTitle) {
 
   return {
     order: product.order,
+    // The canonical id, not an address. `imageBase` backs it for the six
+    // documents seeded before the field existed.
     slug: product.slug ?? product.imageBase,
+    // Passed through unresolved, on purpose: this is the only field on the
+    // payload that every *other* locale needs. The hreflang links and the
+    // sitemap have to render the German URL while serving the Polish page, so
+    // resolving it here to one string would make those two impossible.
+    slugs: slugsFor(product),
     imageBase: product.imageBase,
     photoCount: product.photoCount ?? 4,
     name,
@@ -137,6 +154,66 @@ function categoryFrom(product, locale, resolve, siteTitle) {
       resolve(product.metaDescription) ??
       [alt, ...descriptionLines].filter(Boolean).join(". ") + ".",
   };
+}
+
+/**
+ * The `{pl, en, de}` URL segments for one document.
+ *
+ * Falls back to the canonical id in every locale when no translated slugs
+ * exist, which is what a category added in the Studio looks like until someone
+ * fills the field in. That yields the old shared-slug behaviour rather than a
+ * page with no address at all.
+ */
+function slugsFor(doc) {
+  const id = doc.slug ?? doc.imageBase;
+  const slugs = doc.slugs ?? {};
+  return Object.fromEntries(
+    LOCALE_CODES.map((code) => [code, slugs[code] || id])
+  );
+}
+
+/**
+ * One service page, in the shape both resolvers return.
+ *
+ * `pricingKey` and `categories` are references rather than copy: the first names
+ * the row in the price table this page describes, the second the gallery
+ * categories that illustrate it. Both are resolved at render time, so a category
+ * renamed in the Studio updates the links on every service page that points at
+ * it without anybody editing those pages.
+ */
+function serviceFrom(service, locale, resolve, siteTitle) {
+  const name = resolve(service.name);
+  const intro = resolve(service.intro);
+
+  return {
+    order: service.order,
+    slug: service.slug,
+    slugs: slugsFor(service),
+    pricingKey: service.pricingKey ?? null,
+    categories: service.categories ?? [],
+    name,
+    intro: intro ?? null,
+    scope: resolve(service.scope) ?? [],
+    metaTitle: resolve(service.metaTitle) ?? `${siteTitle} — ${name}`,
+    metaDescription: resolve(service.metaDescription) ?? intro ?? "",
+  };
+}
+
+/**
+ * The fixed headings and links every service page renders around its content.
+ *
+ * On siteSettings rather than on each service, the same way the site-wide CTA
+ * is: they are identical on all six pages, and as per-service fields they would
+ * be six copies to keep in step. Resolved key by key so a partially filled set
+ * in the Studio falls back per label rather than wholesale.
+ */
+function serviceLabelsFrom(settings, locale, resolve) {
+  return Object.fromEntries(
+    Object.entries(SERVICE_SHARED).map(([key, value]) => [
+      key,
+      resolve(settings?.serviceLabels?.[key]) ?? value[locale],
+    ])
+  );
 }
 
 let warned = false;
@@ -169,9 +246,15 @@ export function fromLocales(locale) {
             ? config.description
             : PAGE_META[pageKey].description[locale],
           heading: isHome ? tidy(config.home.heading) : undefined,
+          // The home page and the services hub are the two pages with prose
+          // above their content; the gallery, price list and contact page carry
+          // none. The hub's is not optional — a page that is only a list of
+          // links is a page with nothing for a search engine to read.
           shortDescription: isHome
             ? tidy(config.home.shortDescription)
-            : undefined,
+            : pageKey === "services"
+              ? SERVICES_INTRO[locale]
+              : undefined,
           body: isHome
             ? htmlToBlocks(config.home.fullDescription, `home-${locale}`)
             : [],
@@ -188,12 +271,36 @@ export function fromLocales(locale) {
       {
         order: index + 1,
         slug: product.slug,
+        slugs: product.slugs,
         imageBase: product.slug,
         photoCount: product.photoCount,
         name: product.name[locale],
         price: PRODUCT_SHARED.price[locale],
         descriptionLines: PRODUCT_SHARED.descriptionLines[locale],
         alt: product.alt[locale],
+        intro: product.intro?.[locale],
+        metaTitle: product.metaTitle?.[locale],
+        metaDescription: product.metaDescription?.[locale],
+      },
+      locale,
+      (value) => value,
+      config.title
+    )
+  );
+
+  const services = SERVICES.map((service, index) =>
+    serviceFrom(
+      {
+        order: index + 1,
+        slug: service.slug,
+        slugs: service.slugs,
+        pricingKey: service.pricingKey,
+        categories: service.categories,
+        name: service.name[locale],
+        intro: service.intro[locale],
+        scope: service.scope[locale],
+        metaTitle: service.metaTitle?.[locale],
+        metaDescription: service.metaDescription?.[locale],
       },
       locale,
       (value) => value,
@@ -211,6 +318,8 @@ export function fromLocales(locale) {
     cta: ctaFrom(null, locale, () => undefined),
     error: errorFrom(null, locale, () => undefined),
     products,
+    services,
+    serviceLabels: serviceLabelsFrom(null, locale, () => undefined),
     paths: HREFLANG_URLS,
     settings: {
       wordmark: BRAND.wordmark,
@@ -280,6 +389,15 @@ export function fromSanity(data, locale) {
     categoryFrom(p, locale, resolve, siteTitle)
   );
 
+  // Falls back to the bundled set rather than rendering an empty hub: the
+  // `service` documents are newer than the rest of the schema, so a dataset that
+  // has not been reseeded since they were added would otherwise serve six live
+  // URLs with nothing on them. Unlike the page keys, an absent services
+  // collection does not fail the whole payload — see getContent.
+  const services = data.services?.length
+    ? data.services.map((s) => serviceFrom(s, locale, resolve, siteTitle))
+    : fromLocales(locale).services;
+
   const s = data.settings;
   return {
     source: "sanity",
@@ -293,6 +411,8 @@ export function fromSanity(data, locale) {
     cta: ctaFrom(s, locale, resolve),
     error: errorFrom(s, locale, resolve),
     products,
+    services,
+    serviceLabels: serviceLabelsFrom(s, locale, resolve),
     paths,
     settings: {
       wordmark: s.wordmark ?? BRAND.wordmark,
