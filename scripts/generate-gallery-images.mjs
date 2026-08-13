@@ -26,7 +26,16 @@ const OUT_DIR = path.join(ROOT, "public", "gallery");
 
 // Rendered slots are 80px (photo strip), 112-289px (grid tile) and 600px
 // (desktop detail). Doubled for 2x displays, that tops out around 1200.
-export const WIDTHS = [200, 400, 800, 1200];
+//
+// 300 exists for one specific case that turned out to be the common one: the
+// gallery tile on a phone. At the 412x823 / DPR 1.75 viewport the performance
+// budget measures, `calc(50vw - 37px)` is 169 CSS px, so the browser needs
+// 295 device px — and with candidates at 200 and 400 it has to take the 400,
+// which is 1.8x the pixels it will draw. That is both the `uses-responsive-
+// images` finding and, because the first tile is the LCP element on /galeria,
+// a direct cost to the metric the budget is built around. A 300 candidate is
+// the smallest one that still covers 295 without upscaling.
+export const WIDTHS = [200, 300, 400, 800, 1200];
 
 // The `src` fallback for browsers without WebP. One size only — it is never
 // chosen when srcset is understood, so it exists purely as a floor.

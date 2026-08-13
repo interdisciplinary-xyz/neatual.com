@@ -23,8 +23,11 @@ const viteDevServer = isProduction
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "font-src 'self' https://fonts.gstatic.com",
+  // No fonts.googleapis.com / fonts.gstatic.com: the webfonts are served from
+  // public/fonts by scripts/fetch-fonts.mjs, so nothing on the critical path is
+  // third-party and the two exceptions this policy used to carry are gone.
+  "style-src 'self' 'unsafe-inline'",
+  "font-src 'self'",
   "img-src 'self' data:",
   "connect-src 'self'",
   "base-uri 'self'",
@@ -109,6 +112,15 @@ if (viteDevServer) {
   app.use(
     "/assets",
     express.static("build/client/assets", { immutable: true, maxAge: "1y" })
+  );
+  // The webfonts are versioned by filename (family-weight-subset) and their
+  // bytes only change when scripts/fetch-fonts.mjs is re-run against a new
+  // release of the family — at which point the filename is what an editor
+  // would change. Treating them like /assets rather than like the gallery
+  // photographs, which keep a stable URL while their contents are replaced.
+  app.use(
+    "/fonts",
+    express.static("build/client/fonts", { immutable: true, maxAge: "1y" })
   );
   app.use(express.static("build/client", { maxAge: "1h" }));
 }

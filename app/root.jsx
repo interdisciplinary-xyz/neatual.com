@@ -29,6 +29,9 @@ import {
 } from "./lib/seo";
 import { getContent } from "./lib/content.server";
 import { useContent } from "./lib/useContent";
+// Imported before Tailwind so Vite emits both into one stylesheet rather than
+// two render-blocking requests. Generated — see scripts/fetch-fonts.mjs.
+import "./fonts.css";
 import "./tailwind.css";
 
 /**
@@ -322,18 +325,29 @@ function getAlternatePaths(pathname, paths = HREFLANG_URLS, entry = null) {
   ];
 }
 
+/*
+  The webfonts were a stylesheet on fonts.googleapis.com, plus two preconnects
+  to make it less slow. It was render-blocking on every page — Lighthouse
+  measured 865 ms against 308 ms for the site's own CSS — and on /galeria the
+  LCP element is the first photograph, which could not begin downloading until
+  it resolved. That single request was most of the gap between a 0.87 and a 0.98
+  performance score.
+
+  The faces now come from public/fonts via app/fonts.css, which Vite bundles
+  into the same stylesheet as Tailwind, so the critical path is one same-origin
+  CSS request and no third-party connection at all.
+
+  No `preload` on the fonts, which is not an oversight. Preloading the two
+  Roboto 400 subsets was measured and made things worse: it improved FCP but
+  pushed LCP from ~2.2 s to 3.3-3.8 s, because on a throttled mobile connection
+  70 KiB of fonts fetched at highest priority competes with the LCP element —
+  which on /galeria is the first photograph, not text. `font-display: swap`
+  already means text paints in the fallback immediately, so the preload was
+  buying a slightly earlier font swap at the cost of the metric the budget
+  actually measures.
+*/
 export const links = () => [
   { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-  { rel: "preconnect", href: "https://fonts.googleapis.com" },
-  {
-    rel: "preconnect",
-    href: "https://fonts.gstatic.com",
-    crossOrigin: "anonymous",
-  },
-  {
-    rel: "stylesheet",
-    href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@500&family=Roboto:wght@400;700;900&display=swap",
-  },
 ];
 
 export async function loader({ request }) {
