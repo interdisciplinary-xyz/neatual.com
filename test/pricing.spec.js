@@ -37,23 +37,22 @@ describe("pricing content", () => {
   });
 
   /*
-    Replaces "carries no digit that could be read as a real rate". Every row now
-    has to be one of two things and never a third: an amount, or an explicit
-    "quoted individually". The em-dash placeholder surviving anywhere would mean a
-    row went live with nothing in it, which the flag no longer covers for.
+    Replaces "carries no digit that could be read as a real rate". Every row in the
+    table is now one of the business's own four categories and every one of them
+    has an amount, so a row without a digit is a row that lost its rate — and the
+    em-dash placeholder reappearing means one went live empty, which the flag no
+    longer covers for.
   */
-  it("gives every row either an amount or an explicit individual quote", () => {
+  it("puts an amount on every row", () => {
     for (const code of LOCALE_CODES) {
       const { pricing } = fromLocales(code);
+      expect(pricing.rows.length).toBe(4);
       for (const row of pricing.rows) {
         expect(
           row.price,
           `${code}/${row.key} is still a placeholder`
         ).not.toMatch(/—{2,}/);
-        expect(
-          /\d/.test(row.price) || row.price === PRICING.individualQuote[code],
-          `${code}/${row.key} is neither an amount nor an individual quote: ${row.price}`
-        ).toBe(true);
+        expect(row.price, `${code}/${row.key} has no amount`).toMatch(/\d/);
       }
     }
   });

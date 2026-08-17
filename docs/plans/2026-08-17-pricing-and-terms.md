@@ -260,6 +260,38 @@ no `offers` at all. `pnpm test` 73/73, `pnpm lint`, `pnpm build` clean.
    `pricingIsPlaceholder` from `PRICING.isPlaceholder`, so a reseed lands the flag
    correctly rather than re-arming the notice.
 
+### Second pass — the client's categories only
+
+Decided after the first pass, and it supersedes the row set in §1a: the price
+table holds **only** the four categories the business supplied, and no page names
+a wallpaper type it did not. The four "wycena indywidualna" rows are gone.
+
+Reasoning: a price list is the business's own category system. Adding rows to it —
+even unpriced ones — puts words in its mouth about what it sells. "Quoted
+individually" is not a rate; it is the reason there is no row.
+
+| Surface | What changed |
+| --- | --- |
+| `/cennik` | 8 rows → the 4 supplied ones. `INDIVIDUAL_QUOTE` and `PRICING.individualQuote` removed |
+| Notes | New note carrying what the removed rows said: preparation and stripping are quoted separately, once the walls have been seen. The high-walls note already covered the rest |
+| Service pages | `pricingKey: null` on przygotowanie ścian, zdjęcie starej tapety, sufity i ściany wysokie. `montaz-fototapet` → `pattern-match`: a mural is not a fifth category, it is wallpaper whose drops must be matched — pending the client's answer to question 4 |
+| Home page | `heading`, `shortDescription`, `fullDescription` and the site description in all three locales: "fototapety, wzory i tekstury" → "obiektowe i z pasowaniem wzoru", with the non-absorbent substrates named in the body. Gallery motifs (kwiatowe, tropikalne, pejzaże, geometryczne) kept — they are what the photographs show, and the gallery keeps them |
+| Services hub | `PAGE_META.services.description` in all three locales: "tapety wzorzyste i strukturalne" → the client's categories |
+| Gallery | Untouched, by decision — motif grouping, 18 published URLs, image folders |
+| Tests | `seo.spec.js` relaxed from "every service names a row" to "names a row that exists, or explicitly names none", plus a new assertion that the field is always declared. `pricing.spec.js` now requires an amount on all four rows |
+
+Verified in served output: `/cennik` shows exactly the four labels and the new
+note; `/uslugi/montaz-fototapet` carries `minPrice: 40, maxPrice: 200`;
+`/uslugi/przygotowanie-scian-pod-tapete` carries no `offers`; the home heading
+reads "obiektowe i z pasowaniem wzoru". `pnpm test` 74/74, lint, build clean.
+
+One inconsistency left standing on purpose: the gallery still has a
+`montaz-tapet-strukturalnych` category, so "strukturalne" survives as a *motif*
+name while it is gone from every page that describes what the business sells. That
+is the trade the gallery decision buys — keeping 18 indexed URLs and the image
+folders — and it is worth revisiting only if the client wants the gallery recut
+along his four categories.
+
 ### Still outstanding
 
 - **VAT.** No net/gross statement anywhere on the page, and none in the
@@ -267,8 +299,10 @@ no `offers` at all. `pnpm test` 73/73, `pnpm lint`, `pnpm build` clean.
   question 1 and it is unanswered; it is a note in `PRICING.notes`, so once
   answered it is a Studio edit, not a deploy — *if* the dataset is seeded, and a
   one-line code change if it is not.
-- **Questions 3–5** on the rows now showing "wycena indywidualna", and the
-  mapping of fototapety.
+- **Questions 3–5.** Two of them now matter more than they did: whether murals
+  really bill as `pattern-match` (the site now says so), and whether the four
+  categories are the complete list or whether preparation, stripping and
+  high-level work should have rows of their own.
 - **Phase 2** in full.
 
 ## Risks

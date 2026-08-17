@@ -328,13 +328,29 @@ describe("translated slugs", () => {
     }
   });
 
-  // Every service names a row in the price table. A page describing work the
-  // business has not priced is the failure mode this whole section exists to
-  // avoid — see the note on SERVICES in inlineCopy.js.
-  it("backs every service with a price list row", () => {
+  /*
+    Every service names a row in the price table, or explicitly names none.
+
+    The rule used to be "names a row", which held while the table listed every
+    operation. The table now holds only the four categories the business named
+    itself, and three services describe work quoted per job instead — so `null` is
+    a legitimate answer and says so out loud. What is still caught is the failure
+    this was written for: a key that points at no row, which is a link from a
+    service page to a rate that does not exist.
+  */
+  it("points every service at a price list row that exists, or at none", () => {
     const keys = new Set(PRICING.rows.map((row) => row.key));
     for (const service of SERVICES) {
+      if (service.pricingKey === null) continue;
       expect(keys.has(service.pricingKey), `${service.slug}`).toBe(true);
+    }
+  });
+
+  // A missing field and a deliberate `null` look the same in a payload but are
+  // not the same decision. Every service has to have made one.
+  it("declares a pricing key on every service, even when it is null", () => {
+    for (const service of SERVICES) {
+      expect(Object.hasOwn(service, "pricingKey"), service.slug).toBe(true);
     }
   });
 

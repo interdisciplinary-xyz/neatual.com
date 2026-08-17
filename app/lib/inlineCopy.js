@@ -388,38 +388,30 @@ export const PRODUCT_SHARED = {
 };
 
 /**
- * The rate for a row the business has not put a number on.
- *
- * One constant rather than four copies of the same three strings: a row cannot
- * then half-disagree with its neighbours, and pricing.spec.js can assert that
- * every price is either an amount or exactly this.
- */
-const INDIVIDUAL_QUOTE = {
-  pl: "wycena indywidualna",
-  en: "quoted individually",
-  de: "individuelle Kalkulation",
-};
-
-/**
  * The price list.
  *
- * The four amounts are the business's own, supplied 2026-08-17, and they are the
- * first real rates this page has carried. They cut along the two axes the
- * business actually quotes on: the class of wallpaper (contract-grade, or
- * pattern-matched) and whether the wall underneath absorbs. A non-absorbent
- * substrate — lacquer, glass, board — is a flat rate rather than a surcharge,
- * which is why rows 3 and 4 replace rows 1 and 2 rather than adding to them.
+ * ## The four rows are the whole taxonomy
  *
- * Four rows are still `wycena indywidualna`, because those are the ones no rate
- * was given for. That is not a placeholder: quoting per job is a real answer, and
- * it is the answer already given for high walls in the notes below. What the
- * rows must never do is carry an invented number — a visitor cannot tell a
- * made-up rate from a quoted one, and every one of these rows has a service page
- * pointing at it (`pricingKey` in SERVICES, asserted in seo.spec.js).
+ * These are the categories the business itself supplied on 2026-08-17, in its own
+ * words, and the site names no others. They cut along the two axes it quotes on:
+ * the class of wallpaper (contract-grade, or pattern-matched) and whether the wall
+ * underneath absorbs. A non-absorbent substrate — lacquer, glass, board — is a
+ * flat rate rather than a surcharge, which is why rows 3 and 4 replace rows 1 and
+ * 2 rather than adding to them.
  *
- * `isPlaceholder` is now false, which lifts the "these are not real" notice and
- * the `noindex` in root.jsx. Both remain armed: switching the boolean back on in
- * the Studio re-arms them, which is the lever to reach for if the rates ever go
+ * Rows for surface preparation, stripping old paper, murals and high walls were
+ * removed rather than carried at "quoted individually". A price list is the
+ * business's own category system; inventing entries in it — even unpriced ones —
+ * puts words in its mouth about what it sells. Those four pieces of work still
+ * have service pages, which say there that they are quoted per job, and the notes
+ * below say the same beside the table. What none of them do is name a category
+ * the business did not.
+ *
+ * ## The two flags
+ *
+ * `isPlaceholder` is false, which lifts the "these are not real" notice and the
+ * `noindex` in root.jsx. Both remain armed: switching the boolean back on in the
+ * Studio re-arms them, which is the lever to reach for if the rates ever go
  * stale, rather than a line of code to restore.
  *
  * `notAnOffer` is the line that stays up permanently, and it is deliberately not
@@ -453,18 +445,14 @@ export const PRICING = {
     price: { pl: "Stawka", en: "Rate", de: "Satz" },
   },
 
-  // Re-exported so a test can check a row's price against it by identity rather
-  // than by matching the wording a second time.
-  individualQuote: INDIVIDUAL_QUOTE,
-
   /*
-    Row order is the order a quote is built in: the two substrate-normal rates
-    first, then what a non-absorbent wall costs instead, then the work that is
-    quoted per job.
+    Row order is the order a quote is built in: the absorbent-substrate rates
+    first, then what a non-absorbent wall costs instead of them.
 
-    `price` reads the same in en and de by design — an amount in złoty is a
-    number, and "40–200 PLN" has no German translation. i18n.spec.js exempts the
-    field for that reason; the label beside it is what carries the language.
+    `price` reads the same in en and de — an amount in złoty is a number, and
+    "40–200 PLN" has no German translation. It is still checked by i18n.spec.js
+    rather than exempted there, because Polish writes the currency as "zł"; see
+    the note in that file's exemption list.
   */
   rows: [
     {
@@ -507,46 +495,6 @@ export const PRICING = {
       unit: { pl: "m²", en: "m²", de: "m²" },
       price: { pl: "300 zł", en: "300 PLN", de: "300 PLN" },
     },
-    {
-      key: "mural",
-      label: {
-        pl: "Montaż fototapety",
-        en: "Photo mural installation",
-        de: "Montage von Fototapeten",
-      },
-      unit: { pl: "m²", en: "m²", de: "m²" },
-      price: INDIVIDUAL_QUOTE,
-    },
-    {
-      key: "preparation",
-      label: {
-        pl: "Przygotowanie podłoża (gruntowanie, drobne ubytki)",
-        en: "Surface preparation (priming, minor filling)",
-        de: "Untergrundvorbereitung (Grundierung, kleine Ausbesserungen)",
-      },
-      unit: { pl: "m²", en: "m²", de: "m²" },
-      price: INDIVIDUAL_QUOTE,
-    },
-    {
-      key: "removal",
-      label: {
-        pl: "Zdjęcie starej tapety",
-        en: "Removal of existing wallpaper",
-        de: "Entfernen alter Tapeten",
-      },
-      unit: { pl: "m²", en: "m²", de: "m²" },
-      price: INDIVIDUAL_QUOTE,
-    },
-    {
-      key: "bespoke",
-      label: {
-        pl: "Sufity, ściany wysokie, powierzchnie łukowe",
-        en: "Ceilings, high walls, curved surfaces",
-        de: "Decken, hohe Wände, gewölbte Flächen",
-      },
-      unit: { pl: "zlecenie", en: "per job", de: "pro Auftrag" },
-      price: INDIVIDUAL_QUOTE,
-    },
   ],
 
   notes: [
@@ -564,6 +512,17 @@ export const PRICING = {
       pl: "Podłoże niechłonne — na przykład lakierowane, szklane lub płyta meblowa — ma własną stawkę, podaną w tabeli powyżej.",
       en: "A non-absorbent surface — lacquered, glass or furniture board, for instance — has its own rate, given in the table above.",
       de: "Ein nicht saugender Untergrund — etwa lackiert, Glas oder Möbelplatte — hat einen eigenen Satz, siehe Tabelle oben.",
+    },
+    /*
+      This note and the one after it carry what the removed rows used to say. They
+      belong here rather than in the table: the table is the business's own list of
+      what it charges for, and "quoted individually" is not a rate — it is the
+      reason there is no rate to put in a row.
+    */
+    {
+      pl: "Przygotowanie podłoża i zdjęcie starej tapety wyceniamy oddzielnie, po obejrzeniu ścian.",
+      en: "Surface preparation and stripping old wallpaper are quoted separately, once we have seen the walls.",
+      de: "Untergrundvorbereitung und das Entfernen alter Tapeten kalkulieren wir gesondert, nach Besichtigung der Wände.",
     },
     {
       pl: "Ściany wysokie, sufity, klatki schodowe i powierzchnie łukowe wyceniamy indywidualnie.",
@@ -620,6 +579,19 @@ export const RATE_NUMBERS = {
  * note it expands. Nothing here claims a material, a price, a timescale or a
  * certification.
  *
+ * ## Why three of them have `pricingKey: null`
+ *
+ * The price table holds only the four categories the business named itself, and
+ * surface preparation, stripping old paper and high-level work are not among them
+ * — they are quoted per job, which is what the notes beside the table and these
+ * pages both say. `null` states that on purpose, so seo.spec.js can still catch a
+ * key that is merely misspelt: the rule is "names a row that exists, or explicitly
+ * names none", not "names something".
+ *
+ * A mural is not a fifth category. It is a wallpaper whose drops have to be
+ * matched, so it bills as `pattern-match` — pending the business's confirmation,
+ * which is the one open question against this mapping.
+ *
  * ## Why they do not cannibalise the gallery
  *
  * The gallery is cut by motif — what the finished wall looks like. These are cut
@@ -633,7 +605,7 @@ export const RATE_NUMBERS = {
 export const SERVICES = [
   {
     slug: "montaz-fototapet",
-    pricingKey: "mural",
+    pricingKey: "pattern-match",
     categories: ["kwiatowe", "tropikalne", "artystyczne", "pejzaze"],
     slugs: {
       pl: "montaz-fototapet",
@@ -733,7 +705,7 @@ export const SERVICES = [
   },
   {
     slug: "przygotowanie-scian-pod-tapete",
-    pricingKey: "preparation",
+    pricingKey: null,
     categories: ["strukturalne"],
     slugs: {
       pl: "przygotowanie-scian-pod-tapete",
@@ -783,7 +755,7 @@ export const SERVICES = [
   },
   {
     slug: "zdjecie-starej-tapety",
-    pricingKey: "removal",
+    pricingKey: null,
     categories: [],
     slugs: {
       pl: "zdjecie-starej-tapety",
@@ -833,7 +805,7 @@ export const SERVICES = [
   },
   {
     slug: "tapetowanie-sufitow-i-scian-wysokich",
-    pricingKey: "bespoke",
+    pricingKey: null,
     categories: ["pejzaze", "artystyczne"],
     slugs: {
       pl: "tapetowanie-sufitow-i-scian-wysokich",
@@ -1006,9 +978,9 @@ export const PAGE_META = {
   services: {
     suffix: { pl: "Usługi", en: "Services", de: "Leistungen" },
     description: {
-      pl: "Montaż tapet i fototapet w całej Polsce: tapety wzorzyste i strukturalne, przygotowanie ścian, zdjęcie starej tapety, sufity i wnętrza komercyjne.",
-      en: "Wallpaper and mural installation across Poland: patterned and textured papers, wall preparation, stripping old paper, ceilings and commercial interiors.",
-      de: "Montage von Tapeten und Fototapeten in ganz Polen: gemusterte und strukturierte Tapeten, Wandvorbereitung, Entfernen alter Tapeten, Decken, Gewerberäume.",
+      pl: "Montaż tapet i fototapet w całej Polsce: tapety obiektowe, pasowanie wzoru, podłoża niechłonne, przygotowanie ścian, zdjęcie starej tapety, sufity.",
+      en: "Wallpaper and mural installation across Poland: contract grades, pattern matching, non-absorbent surfaces, wall preparation, stripping old paper, ceilings.",
+      de: "Montage von Tapeten und Fototapeten in ganz Polen: Objekttapeten, Musteranpassung, nicht saugende Untergründe, Wandvorbereitung, Tapetenentfernung, Decken.",
     },
   },
   gallery: {
