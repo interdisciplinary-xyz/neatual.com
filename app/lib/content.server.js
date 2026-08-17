@@ -50,22 +50,29 @@ const NAV_INDEX = { home: 0, services: 1, gallery: 2, pricing: 3, contact: 4 };
  * The pricing payload, in the shape both resolvers return.
  *
  * Kept as one helper because the placeholder guard has to behave identically
- * whichever source answered: if the CMS has not had real rates entered yet, the
- * page must still declare itself provisional. `pricingIsPlaceholder` therefore
- * defaults to *true* on a missing value rather than false — an unset flag means
- * nobody has confirmed the numbers, which is exactly the case the notice and the
- * noindex exist for.
+ * whichever source answered.
+ *
+ * `pricingIsPlaceholder` used to default to *true* on a missing value: while the
+ * bundled rates were em-dashes, an unset flag meant nobody had confirmed the
+ * numbers. The bundled rates are real as of 2026-08-17, so the default is now
+ * whatever `PRICING.isPlaceholder` says — which is the flag travelling with the
+ * numbers it describes, rather than a constant that has to be remembered. An
+ * explicit value in the Studio still wins in both directions.
  */
 function pricingFrom(page, locale, resolve) {
   if (!page) return null;
   const rows = resolve(page.pricingRows) ?? [];
   return {
-    isPlaceholder: page.pricingIsPlaceholder !== false,
+    isPlaceholder: page.pricingIsPlaceholder ?? PRICING.isPlaceholder,
     // Bundled, never resolved from the CMS. A notice whose entire job is to say
     // "these numbers are not real" must not be removable by clearing a Studio
     // field — that would leave fabricated rates on a live page with nothing
     // marking them as fabricated.
     placeholderNotice: PRICING.placeholderNotice[locale],
+    // Bundled for the same reason, and shown whatever the flag says: the rates
+    // are real now, and a real range still is not a quotation. Clearing this one
+    // from the Studio would leave a price list that reads as a binding offer.
+    notAnOffer: PRICING.notAnOffer[locale],
     intro: resolve(page.pricingIntro) ?? PRICING.intro[locale],
     // Per column, not all-or-nothing: a CMS that has two of the three headings
     // should show those two and fall back for the third, rather than discard

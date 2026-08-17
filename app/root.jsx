@@ -27,6 +27,7 @@ import {
   servicePath,
   findBySlug,
 } from "./lib/seo";
+import { RATE_NUMBERS } from "./lib/inlineCopy";
 import { getContent } from "./lib/content.server";
 import { useContent } from "./lib/useContent";
 // Imported before Tailwind so Vite emits both into one stylesheet rather than
@@ -181,10 +182,10 @@ function structuredData(pathname, content) {
   // `Service` node below.
   //
   // `pricing` deliberately falls through to WebPage. schema.org has no pricing
-  // page type, and the tempting alternative — emitting Offer/PriceSpecification
-  // nodes — would publish the rate table as machine-readable structured data.
-  // While those rates are placeholders that is precisely how a fabricated price
-  // ends up quoted in a search result. Revisit once real rates are entered.
+  // page type, and the whole table has no single node that describes it. The
+  // rates are published per service instead — see the Offer on the `Service`
+  // node below, which is what the note here used to defer until real numbers
+  // existed. They exist as of 2026-08-17.
   const pageType =
     page === "gallery" || (page === "services" && !entry)
       ? "CollectionPage"
@@ -195,13 +196,19 @@ function structuredData(pathname, content) {
   /*
     A `Service` node on the six service pages, and only there.
 
-    It carries what is actually known — the name, the description already
-    written for the page, who provides it and where — and deliberately no
-    `offers` or `priceSpecification`. The rates are placeholders (see PRICING in
-    inlineCopy.js), and structured data is precisely the route by which a
-    fabricated price ends up quoted in a search result. Revisit alongside the
-    noindex on /cennik, once real numbers are entered.
+    It carries what is actually known — the name, the description already written
+    for the page, who provides it and where — plus, since 2026-08-17, the rate for
+    the price-list row the page names. `RATE_NUMBERS` holds only the rows that
+    have a number, so the four services quoted per job emit no `offers` at all: an
+    Offer with no price is worse for a crawler than no Offer, and it is also the
+    honest reading of "wycena indywidualna".
+
+    `minPrice`/`maxPrice` for a range, plain `price` for a flat rate — a
+    UnitPriceSpecification with min === max is a valid but silly way to say 250.
+    `unitCode: "MTK"` is UN/CEFACT for the square metre, so the number is not read
+    as a price for the whole job.
   */
+  const rate = entry ? RATE_NUMBERS[entry.pricingKey] : undefined;
   const service =
     page === "services" && entry
       ? [
@@ -213,6 +220,22 @@ function structuredData(pathname, content) {
             serviceType: entry.name,
             provider: { "@id": ORGANISATION_ID },
             areaServed: "PL",
+            ...(rate
+              ? {
+                  offers: {
+                    "@type": "Offer",
+                    url: `${SITE_URL}${HREFLANG_URLS[locale].pricing}`,
+                    priceSpecification: {
+                      "@type": "UnitPriceSpecification",
+                      priceCurrency: "PLN",
+                      unitCode: "MTK",
+                      ...(rate.min === rate.max
+                        ? { price: rate.min }
+                        : { minPrice: rate.min, maxPrice: rate.max }),
+                    },
+                  },
+                }
+              : {}),
           },
         ]
       : [];
