@@ -6,7 +6,7 @@ Company website for Neatual – a Polish wallpaper-hanging company working acros
 
 - **React Router 7** – Full-stack React framework, in framework mode
 - **Tailwind CSS** – Styling
-- **React 18** – UI
+- **React 19** – UI
 
 ## Development
 
@@ -87,8 +87,11 @@ Labels that take a value — "Pattern no. {n}", "{name} — photo {n}" — are s
 templates with `{placeholder}` markers and expanded by `fillTemplate()`. They were
 functions before, which no CMS field can express.
 
-Sanity is pinned to the `4.x` line because 5.x and later require React 19; this app is on
-React 18.
+Sanity is on the `4.x` line. That used to be described as a pin forced by React 18 —
+"5.x and later require React 19; this app is on React 18" — which had it backwards:
+`sanity@4.22.0` peers `react: "^18||^19"`, so React 18 was never what held it here. The
+app moved to React 19 on 28 August 2026 and Sanity 4 did not have to move with it. It
+stays on 4.x because nothing needs 5.x, not because anything blocks it.
 
 ## Routes
 
