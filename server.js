@@ -1,4 +1,10 @@
 import { createRequestHandler } from "@remix-run/express";
+
+import {
+  CONTENT_SECURITY_POLICY,
+  STRICT_TRANSPORT_SECURITY,
+  UNCONDITIONAL_HEADERS,
+} from "./app/lib/securityHeaders.js";
 import compression from "compression";
 import express from "express";
 
@@ -12,38 +18,15 @@ const viteDevServer = isProduction
       })
     );
 
-// One style origin, one font origin, no third-party scripts, no XHR targets.
-//
-// `script-src` keeps 'unsafe-inline' because Remix serializes its hydration
-// payload into an inline <script>; moving that to a nonce means threading one
-// through entry.server and <Scripts nonce>. The policy still blocks every
-// third-party script origin, which is where the actual risk lives on a site
-// with no user input. Recorded rather than silently relaxed — see
-// docs/audits/2026-08-10-security-dependency-audit.md.
-const CONTENT_SECURITY_POLICY = [
-  "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  // No fonts.googleapis.com / fonts.gstatic.com: the webfonts are served from
-  // public/fonts by scripts/fetch-fonts.mjs, so nothing on the critical path is
-  // third-party and the two exceptions this policy used to carry are gone.
-  "style-src 'self' 'unsafe-inline'",
-  "font-src 'self'",
-  "img-src 'self' data:",
-  "connect-src 'self'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-].join("; ");
-
+// Applies to `pnpm start`, the CI smoke job and the Lighthouse run — every
+// place the Express server actually serves the app. It does NOT apply in
+// production: Vercel serves the built Remix app through its own adapter and
+// never loads this file, so the same headers are restated in vercel.json. See
+// the note at the top of app/lib/securityHeaders.js.
 function securityHeaders(req, res, next) {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("X-Frame-Options", "DENY");
-  res.setHeader(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=(), payment=()"
-  );
+  for (const [name, value] of Object.entries(UNCONDITIONAL_HEADERS)) {
+    res.setHeader(name, value);
+  }
 
   // Production-only: Vite's dev server needs eval and an HMR websocket, both
   // of which this policy blocks.
@@ -63,10 +46,7 @@ function securityHeaders(req, res, next) {
   // would honour it from any direct client, which is what makes the check
   // spoofable.
   if (isProduction && req.secure) {
-    res.setHeader(
-      "Strict-Transport-Security",
-      "max-age=63072000; includeSubDomains; preload"
-    );
+    res.setHeader("Strict-Transport-Security", STRICT_TRANSPORT_SECURITY);
   }
 
   next();
@@ -74,8 +54,14 @@ function securityHeaders(req, res, next) {
 
 const app = express();
 
-// Vercel/Railway/nginx terminate TLS upstream, so without this `req.secure` is
-// always false and the HSTS check in securityHeaders cannot fire.
+// A proxy that terminates TLS upstream leaves `req.secure` false, so the HSTS
+// check in securityHeaders cannot fire without this.
+//
+// The Railway arm is gone: Vercel is the deploy target (see
+// docs/deploy.md), and Railway was one of three hosts this repo used to hedge
+// across. Kept in some form anyway, rather than deleted outright, because
+// `pnpm start` behind a local reverse proxy is a real way to run this file —
+// that case opts in with TRUST_PROXY=1.
 //
 // NOT `true`, which trusts X-Forwarded-* from any client: a direct request
 // could then claim `x-forwarded-proto: https` and pull back an HSTS header —
@@ -85,9 +71,7 @@ const app = express();
 // when a deployment opts in explicitly, and then for exactly one hop.
 const TRUST_PROXY_HOPS = 1;
 const isBehindKnownProxy =
-  process.env.TRUST_PROXY === "1" ||
-  Boolean(process.env.VERCEL) ||
-  Boolean(process.env.RAILWAY_ENVIRONMENT);
+  process.env.TRUST_PROXY === "1" || Boolean(process.env.VERCEL);
 
 if (isBehindKnownProxy) {
   app.set("trust proxy", TRUST_PROXY_HOPS);
