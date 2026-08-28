@@ -84,6 +84,10 @@ const NOT_EDITABLE = [
     why: "The notice that says the rates are not real. A field whose entire job is to declare the numbers fabricated must not be clearable from the Studio, or a live page shows invented prices with nothing marking them as invented. See pricingFrom() in content.server.js.",
   },
   {
+    pattern: /^pricing\.notAnOffer$/,
+    why: "The line saying a rate is not a binding offer. Bundled for the same reason as the notice above, and shown whatever the placeholder flag says: the rates are real, and a real range still is not a quotation. Clearing it in the Studio would leave a price list that reads as an offer.",
+  },
+  {
     pattern: /^(source|locale)$/,
     why: "Which resolver answered, and for which locale. Diagnostics, not copy.",
   },

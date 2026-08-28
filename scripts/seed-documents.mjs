@@ -63,10 +63,11 @@ function buildPage(pageKey) {
   };
 
   if (pageKey === "pricing") {
-    // Seeded with `pricingIsPlaceholder: true` on purpose. The rates below are
-    // the em-dash placeholders from inlineCopy.js, and the flag is what keeps
-    // the page carrying its "not an offer" notice and its noindex until an
-    // editor replaces them and turns it off.
+    // Carries whatever `PRICING.isPlaceholder` says — false since 2026-08-17,
+    // when the business supplied real rates. Seeding the flag rather than
+    // hardcoding it means the document a fresh dataset gets never disagrees with
+    // the numbers seeded beside it. An editor can still switch it back on to put
+    // the "not an offer" notice and the noindex back.
     doc.pricingIsPlaceholder = PRICING.isPlaceholder;
     doc.pricingIntro = byLocale((_, code) => PRICING.intro[code]);
     doc.pricingColumns = Object.fromEntries(

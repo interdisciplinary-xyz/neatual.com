@@ -3,7 +3,7 @@ export const LOCALES = {
     lang: "pl-PL",
     title: "Neatual.com | Montaż tapet w całej Polsce.",
     description:
-      "Wieszamy tapety i fototapety w całej Polsce: wzory kwiatowe, pejzaże, tekstury. Montaż na miejscu, w domach i wnętrzach komercyjnych.",
+      "Wieszamy tapety i fototapety w całej Polsce: tapety obiektowe, tapety z pasowaniem wzoru, podłoża niechłonne. Montaż w domach i wnętrzach komercyjnych.",
     navItems: [
       { label: "Główna", link: "/" },
       { label: "Usługi", link: "/uslugi" },
@@ -12,14 +12,16 @@ export const LOCALES = {
       { label: "Kontakt", link: "/kontakt" },
     ],
     home: {
-      heading: "Wieszamy tapety w całej Polsce — fototapety, wzory i tekstury.",
+      heading:
+        "Wieszamy tapety w całej Polsce — obiektowe i z pasowaniem wzoru.",
       shortDescription:
-        "Tapetę wybiera klient albo jego projektant — my zajmujemy się montażem. Wieszamy fototapety, wzory i tekstury w łazienkach, sypialniach, przy basenie i w przestrzeniach komercyjnych.",
+        "Tapetę wybiera klient albo jego projektant — my zajmujemy się montażem. Wieszamy tapety obiektowe i tapety z pasowaniem wzoru, także na podłożach niechłonnych, w łazienkach, sypialniach, przy basenie i w przestrzeniach komercyjnych.",
       fullDescription: `Tapetę wybiera klient albo jego projektant. My zajmujemy się montażem — i tylko montażem.<br><br>
-        Wieszamy fototapety, tapety wzorzyste i strukturalne: motywy kwiatowe i tropikalne,
-        pejzaże, wzory geometryczne, faktury. Zdjęcia w galerii pochodzą ze zrealizowanych
-        montaży — w łazienkach, sypialniach, przy basenie, w korytarzach i wnętrzach
-        komercyjnych.<br><br>
+        Wieszamy tapety obiektowe i tapety z pasowaniem wzoru — również na podłożach
+        niechłonnych, takich jak powierzchnie lakierowane, szkło czy płyta meblowa.
+        Zdjęcia w galerii pochodzą ze zrealizowanych montaży: motywy kwiatowe i
+        tropikalne, pejzaże, wzory geometryczne — w łazienkach, sypialniach, przy
+        basenie, w korytarzach i wnętrzach komercyjnych.<br><br>
         Pracujemy w całej Polsce. Nasz adres to Żelków-Kolonia pod Siedlcami.`,
     },
     contact: {
@@ -55,7 +57,7 @@ export const LOCALES = {
     lang: "en-US",
     title: "Neatual.com | Wallpaper hanging across Poland.",
     description:
-      "We hang wallpaper across Poland — murals, patterns and textured coverings. Installed on site, in homes and commercial interiors.",
+      "We hang wallpaper across Poland — contract grades, pattern-matched papers, non-absorbent surfaces. Installed on site, in homes and commercial interiors.",
     navItems: [
       { label: "Home", link: "/en" },
       { label: "Services", link: "/en/services" },
@@ -65,14 +67,15 @@ export const LOCALES = {
     ],
     home: {
       heading:
-        "We hang wallpaper across Poland — murals, patterns and textures.",
+        "We hang wallpaper across Poland — contract grades and matched patterns.",
       shortDescription:
-        "The wallpaper is chosen by the client or their designer — we handle the installation. We hang murals, patterns and textured papers in bathrooms, bedrooms, pool areas and commercial spaces.",
+        "The wallpaper is chosen by the client or their designer — we handle the installation. We hang contract wallpaper and pattern-matched papers, including on non-absorbent surfaces, in bathrooms, bedrooms, pool areas and commercial spaces.",
       fullDescription: `The wallpaper is chosen by the client or their designer. We handle the installation — and only the installation.<br><br>
-        We hang murals, patterned and textured wallpaper: florals and tropical motifs,
-        landscapes, geometric patterns and textures. The photographs in the gallery are from
-        completed installations — in bathrooms, bedrooms, beside a pool, in hallways and
-        commercial interiors.<br><br>
+        We hang contract wallpaper and pattern-matched papers — including on non-absorbent
+        surfaces such as lacquered finishes, glass and furniture board. The photographs in
+        the gallery are from completed installations: florals and tropical motifs,
+        landscapes, geometric patterns — in bathrooms, bedrooms, beside a pool, in hallways
+        and commercial interiors.<br><br>
         We work across the whole of Poland. Our address is Żelków-Kolonia, near Siedlce.`,
     },
     contact: {
@@ -108,7 +111,7 @@ export const LOCALES = {
     lang: "de-DE",
     title: "Neatual.com | Tapezierarbeiten in ganz Polen.",
     description:
-      "Wir tapezieren in ganz Polen — Fototapeten, Muster und strukturierte Tapeten. Montage vor Ort, in Wohnräumen und Gewerbeobjekten.",
+      "Wir tapezieren in ganz Polen — Objekttapeten, Tapeten mit Musteranpassung, nicht saugende Untergründe. Montage vor Ort, in Wohn- und Gewerberäumen.",
     navItems: [
       { label: "Zuhause", link: "/de" },
       { label: "Leistungen", link: "/de/leistungen" },
@@ -118,14 +121,15 @@ export const LOCALES = {
     ],
     home: {
       heading:
-        "Wir tapezieren in ganz Polen — Fototapeten, Muster und Texturen.",
+        "Wir tapezieren in ganz Polen — Objekttapeten und Musteranpassung.",
       shortDescription:
-        "Die Tapete wählt der Kunde oder sein Planer — wir übernehmen die Montage. Wir hängen Fototapeten, Muster und strukturierte Tapeten in Badezimmern, Schlafzimmern, am Pool und in Gewerberäumen.",
+        "Die Tapete wählt der Kunde oder sein Planer — wir übernehmen die Montage. Wir hängen Objekttapeten und Tapeten mit Musteranpassung, auch auf nicht saugenden Untergründen, in Badezimmern, Schlafzimmern, am Pool und in Gewerberäumen.",
       fullDescription: `Die Tapete wählt der Kunde oder sein Planer. Wir übernehmen die Montage — und nur die Montage.<br><br>
-        Wir hängen Fototapeten, gemusterte und strukturierte Tapeten: Blumen- und
-        Tropenmotive, Landschaften, geometrische Muster und Texturen. Die Fotos in der Galerie
-        stammen von abgeschlossenen Arbeiten — in Badezimmern, Schlafzimmern, am Pool, in
-        Fluren und Gewerberäumen.<br><br>
+        Wir hängen Objekttapeten und Tapeten mit Musteranpassung — auch auf nicht saugenden
+        Untergründen wie lackierten Flächen, Glas oder Möbelplatten. Die Fotos in der Galerie
+        stammen von abgeschlossenen Arbeiten: Blumen- und Tropenmotive, Landschaften,
+        geometrische Muster — in Badezimmern, Schlafzimmern, am Pool, in Fluren und
+        Gewerberäumen.<br><br>
         Wir arbeiten in ganz Polen. Unser Sitz ist Żelków-Kolonia bei Siedlce.`,
     },
     contact: {

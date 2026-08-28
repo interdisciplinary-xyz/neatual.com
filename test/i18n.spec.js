@@ -45,6 +45,14 @@ const SAME_IN_EVERY_LANGUAGE = [
   /^pricing\.rows\.\d+\.key$/,
   // "m²" is a unit; it is the same symbol in all three languages.
   /^pricing\.rows\.\d+\.unit$/,
+  /*
+    Deliberately *not* exempt: `pricing.rows.*.price`. An amount reads the same in
+    English and German ("40–200 PLN"), but the check above only reports a string
+    identical in all three locales, and Polish writes the currency as "zł". So the
+    amounts pass on their own, and the rows priced "wycena indywidualna" — which
+    is prose and is translated — keep being checked. Exempting the field would
+    have bought nothing and stopped watching the one part of it that is language.
+  */
   // The full `{pl, en, de}` slug map, carried unresolved on every payload so
   // hreflang can ask for a locale other than the one being rendered. It is the
   // same object in all three by construction — the *addresses* it holds are

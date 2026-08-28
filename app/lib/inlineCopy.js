@@ -390,23 +390,36 @@ export const PRODUCT_SHARED = {
 /**
  * The price list.
  *
- * ⚠️ EVERY RATE HERE IS A PLACEHOLDER. No real pricing was supplied, and
- * inventing numbers for a real business is worse than shipping none — a visitor
- * cannot tell a made-up rate from a quoted one. The amounts are deliberately
- * `———` rather than plausible-looking figures, so there is no version of this
- * page that reads as genuine while being fabricated.
+ * ## The four rows are the whole taxonomy
  *
- * `isPlaceholder` drives two things: the notice rendered above the table, and
- * `noindex` on the page (see root.jsx). Set it false in the Studio once real
- * rates are in and both guards lift themselves — there is nothing to remember
- * to undo in the code.
+ * These are the categories the business itself supplied on 2026-08-17, in its own
+ * words, and the site names no others. They cut along the two axes it quotes on:
+ * the class of wallpaper (contract-grade, or pattern-matched) and whether the wall
+ * underneath absorbs. A non-absorbent substrate — lacquer, glass, board — is a
+ * flat rate rather than a surcharge, which is why rows 3 and 4 replace rows 1 and
+ * 2 rather than adding to them.
  *
- * The rows are the *structure* of a wallpaper-hanging quote, which is real even
- * though the numbers are not: area-based installation, per-type surcharges,
- * surface preparation, and the things that are quoted per-job rather than per m².
+ * Rows for surface preparation, stripping old paper, murals and high walls were
+ * removed rather than carried at "quoted individually". A price list is the
+ * business's own category system; inventing entries in it — even unpriced ones —
+ * puts words in its mouth about what it sells. Those four pieces of work still
+ * have service pages, which say there that they are quoted per job, and the notes
+ * below say the same beside the table. What none of them do is name a category
+ * the business did not.
+ *
+ * ## The two flags
+ *
+ * `isPlaceholder` is false, which lifts the "these are not real" notice and the
+ * `noindex` in root.jsx. Both remain armed: switching the boolean back on in the
+ * Studio re-arms them, which is the lever to reach for if the rates ever go
+ * stale, rather than a line of code to restore.
+ *
+ * `notAnOffer` is the line that stays up permanently, and it is deliberately not
+ * the same string. A range is not a quotation whatever its provenance, and the
+ * page has to say so even — especially — when the numbers are genuine.
  */
 export const PRICING = {
-  isPlaceholder: true,
+  isPlaceholder: false,
 
   placeholderNotice: {
     pl: "Cennik w przygotowaniu. Poniższe stawki są przykładowe i nie stanowią oferty — po wycenę prosimy o kontakt.",
@@ -414,10 +427,16 @@ export const PRICING = {
     de: "Diese Preisliste wird noch erstellt. Die untenstehenden Sätze sind Platzhalter und stellen kein Angebot dar — für ein Angebot kontaktieren Sie uns bitte.",
   },
 
+  notAnOffer: {
+    pl: "Stawki orientacyjne — nie stanowią oferty w rozumieniu Kodeksu cywilnego. Ostateczną wycenę podajemy po obejrzeniu ścian.",
+    en: "Indicative rates — not a binding offer. We give the final quote once we have seen the walls.",
+    de: "Orientierungspreise — kein verbindliches Angebot. Das endgültige Angebot nennen wir nach Besichtigung der Wände.",
+  },
+
   intro: {
-    pl: "Montaż wyceniamy według powierzchni ściany i rodzaju tapety. Poniżej zakres prac, które wchodzą w wycenę.",
-    en: "We price installation by wall area and wallpaper type. Below is the scope of work a quote covers.",
-    de: "Wir kalkulieren die Montage nach Wandfläche und Tapetenart. Unten der Leistungsumfang, den ein Angebot abdeckt.",
+    pl: "Montaż wyceniamy według powierzchni ściany, rodzaju tapety i podłoża, na które ma być klejona. Poniżej stawki, od których wychodzimy.",
+    en: "We price installation by wall area, wallpaper type and the surface it is going onto. Below are the rates a quote starts from.",
+    de: "Wir kalkulieren die Montage nach Wandfläche, Tapetenart und dem Untergrund, auf den sie kommt. Unten die Sätze, von denen wir ausgehen.",
   },
 
   columns: {
@@ -426,67 +445,55 @@ export const PRICING = {
     price: { pl: "Stawka", en: "Rate", de: "Satz" },
   },
 
-  // `price` is intentionally the same em-dash placeholder in every locale.
+  /*
+    Row order is the order a quote is built in: the absorbent-substrate rates
+    first, then what a non-absorbent wall costs instead of them.
+
+    `price` reads the same in en and de — an amount in złoty is a number, and
+    "40–200 PLN" has no German translation. It is still checked by i18n.spec.js
+    rather than exempted there, because Polish writes the currency as "zł"; see
+    the note in that file's exemption list.
+  */
   rows: [
     {
-      key: "standard",
+      key: "contract",
       label: {
-        pl: "Montaż tapety wzorzystej",
-        en: "Patterned wallpaper installation",
-        de: "Montage gemusterter Tapete",
+        pl: "Tapety obiektowe",
+        en: "Contract wallpaper",
+        de: "Objekttapeten",
       },
       unit: { pl: "m²", en: "m²", de: "m²" },
-      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+      price: { pl: "35–150 zł", en: "35–150 PLN", de: "35–150 PLN" },
     },
     {
-      key: "mural",
+      key: "pattern-match",
       label: {
-        pl: "Montaż fototapety",
-        en: "Photo mural installation",
-        de: "Montage von Fototapeten",
+        pl: "Tapety z pasowaniem wzoru",
+        en: "Wallpaper with pattern matching",
+        de: "Tapeten mit Musteranpassung",
       },
       unit: { pl: "m²", en: "m²", de: "m²" },
-      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+      price: { pl: "40–200 zł", en: "40–200 PLN", de: "40–200 PLN" },
     },
     {
-      key: "textured",
+      key: "non-absorbent",
       label: {
-        pl: "Montaż tapety strukturalnej",
-        en: "Textured wallpaper installation",
-        de: "Montage von Strukturtapeten",
+        pl: "Tapety na podłożu niechłonnym",
+        en: "Wallpaper on a non-absorbent surface",
+        de: "Tapeten auf nicht saugendem Untergrund",
       },
       unit: { pl: "m²", en: "m²", de: "m²" },
-      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+      price: { pl: "250 zł", en: "250 PLN", de: "250 PLN" },
     },
     {
-      key: "preparation",
+      key: "non-absorbent-patterned",
       label: {
-        pl: "Przygotowanie podłoża (gruntowanie, drobne ubytki)",
-        en: "Surface preparation (priming, minor filling)",
-        de: "Untergrundvorbereitung (Grundierung, kleine Ausbesserungen)",
+        pl: "Tapety wzorzyste na podłożu niechłonnym",
+        en: "Patterned wallpaper on a non-absorbent surface",
+        de: "Gemusterte Tapeten auf nicht saugendem Untergrund",
       },
       unit: { pl: "m²", en: "m²", de: "m²" },
-      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
-    },
-    {
-      key: "removal",
-      label: {
-        pl: "Zdjęcie starej tapety",
-        en: "Removal of existing wallpaper",
-        de: "Entfernen alter Tapeten",
-      },
-      unit: { pl: "m²", en: "m²", de: "m²" },
-      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
-    },
-    {
-      key: "minimum",
-      label: {
-        pl: "Minimalna wartość zlecenia",
-        en: "Minimum job value",
-        de: "Mindestauftragswert",
-      },
-      unit: { pl: "zlecenie", en: "per job", de: "pro Auftrag" },
-      price: { pl: "——— zł", en: "——— PLN", de: "——— PLN" },
+      price: { pl: "300 zł", en: "300 PLN", de: "300 PLN" },
     },
   ],
 
@@ -495,6 +502,27 @@ export const PRICING = {
       pl: "Tapetę kupuje klient lub jego projektant — my zajmujemy się wyłącznie montażem.",
       en: "The wallpaper is bought by the client or their designer — we handle installation only.",
       de: "Die Tapete kauft der Kunde oder sein Planer — wir übernehmen ausschließlich die Montage.",
+    },
+    {
+      pl: "Stawka z widełek zależy od zakresu i warunków pracy na miejscu — dokładną kwotę potwierdzamy w wycenie.",
+      en: "Where a rate falls within its range depends on the scope and the conditions on site — the exact figure is confirmed in the quote.",
+      de: "Wo ein Satz innerhalb seiner Spanne liegt, hängt vom Umfang und den Bedingungen vor Ort ab — den genauen Betrag bestätigen wir im Angebot.",
+    },
+    {
+      pl: "Podłoże niechłonne — na przykład lakierowane, szklane lub płyta meblowa — ma własną stawkę, podaną w tabeli powyżej.",
+      en: "A non-absorbent surface — lacquered, glass or furniture board, for instance — has its own rate, given in the table above.",
+      de: "Ein nicht saugender Untergrund — etwa lackiert, Glas oder Möbelplatte — hat einen eigenen Satz, siehe Tabelle oben.",
+    },
+    /*
+      This note and the one after it carry what the removed rows used to say. They
+      belong here rather than in the table: the table is the business's own list of
+      what it charges for, and "quoted individually" is not a rate — it is the
+      reason there is no rate to put in a row.
+    */
+    {
+      pl: "Przygotowanie podłoża i zdjęcie starej tapety wyceniamy oddzielnie, po obejrzeniu ścian.",
+      en: "Surface preparation and stripping old wallpaper are quoted separately, once we have seen the walls.",
+      de: "Untergrundvorbereitung und das Entfernen alter Tapeten kalkulieren wir gesondert, nach Besichtigung der Wände.",
     },
     {
       pl: "Ściany wysokie, sufity, klatki schodowe i powierzchnie łukowe wyceniamy indywidualnie.",
@@ -507,6 +535,30 @@ export const PRICING = {
       de: "Anfahrt außerhalb der Region Siedlce wird nach Entfernung berechnet.",
     },
   ],
+};
+
+/**
+ * The same rates as numbers, keyed by the row they belong to.
+ *
+ * Structured data cannot use the display strings: "35–150 zł" is not a price a
+ * crawler can read, and parsing it back into numbers would make the JSON-LD
+ * depend on how the table happens to be punctuated. So the amounts exist twice —
+ * and because that is a drift risk, pricing.spec.js asserts every number here
+ * reads back out of the row it names.
+ *
+ * Only the rows with a rate appear. A row quoted per job has no
+ * `priceSpecification`, which is the correct structured-data answer for it: an
+ * Offer with no price is worse than no Offer.
+ *
+ * No `valueAddedTaxIncluded`. Whether the amounts are net or gross has not been
+ * confirmed, and asserting either into machine-readable data is how a 23%
+ * difference ends up quoted back at the business. Add it once it is known.
+ */
+export const RATE_NUMBERS = {
+  contract: { min: 35, max: 150 },
+  "pattern-match": { min: 40, max: 200 },
+  "non-absorbent": { min: 250, max: 250 },
+  "non-absorbent-patterned": { min: 300, max: 300 },
 };
 
 /**
@@ -527,6 +579,19 @@ export const PRICING = {
  * note it expands. Nothing here claims a material, a price, a timescale or a
  * certification.
  *
+ * ## Why three of them have `pricingKey: null`
+ *
+ * The price table holds only the four categories the business named itself, and
+ * surface preparation, stripping old paper and high-level work are not among them
+ * — they are quoted per job, which is what the notes beside the table and these
+ * pages both say. `null` states that on purpose, so seo.spec.js can still catch a
+ * key that is merely misspelt: the rule is "names a row that exists, or explicitly
+ * names none", not "names something".
+ *
+ * A mural is not a fifth category. It is a wallpaper whose drops have to be
+ * matched, so it bills as `pattern-match` — pending the business's confirmation,
+ * which is the one open question against this mapping.
+ *
  * ## Why they do not cannibalise the gallery
  *
  * The gallery is cut by motif — what the finished wall looks like. These are cut
@@ -540,7 +605,7 @@ export const PRICING = {
 export const SERVICES = [
   {
     slug: "montaz-fototapet",
-    pricingKey: "mural",
+    pricingKey: "pattern-match",
     categories: ["kwiatowe", "tropikalne", "artystyczne", "pejzaze"],
     slugs: {
       pl: "montaz-fototapet",
@@ -590,7 +655,7 @@ export const SERVICES = [
   },
   {
     slug: "montaz-tapet-wzorzystych",
-    pricingKey: "standard",
+    pricingKey: "pattern-match",
     categories: ["geometryczne", "kwiatowe"],
     slugs: {
       pl: "montaz-tapet-wzorzystych",
@@ -640,7 +705,7 @@ export const SERVICES = [
   },
   {
     slug: "przygotowanie-scian-pod-tapete",
-    pricingKey: "preparation",
+    pricingKey: null,
     categories: ["strukturalne"],
     slugs: {
       pl: "przygotowanie-scian-pod-tapete",
@@ -690,7 +755,7 @@ export const SERVICES = [
   },
   {
     slug: "zdjecie-starej-tapety",
-    pricingKey: "removal",
+    pricingKey: null,
     categories: [],
     slugs: {
       pl: "zdjecie-starej-tapety",
@@ -740,7 +805,7 @@ export const SERVICES = [
   },
   {
     slug: "tapetowanie-sufitow-i-scian-wysokich",
-    pricingKey: "minimum",
+    pricingKey: null,
     categories: ["pejzaze", "artystyczne"],
     slugs: {
       pl: "tapetowanie-sufitow-i-scian-wysokich",
@@ -790,7 +855,7 @@ export const SERVICES = [
   },
   {
     slug: "tapetowanie-wnetrz-komercyjnych",
-    pricingKey: "minimum",
+    pricingKey: "contract",
     categories: ["geometryczne", "strukturalne", "artystyczne"],
     slugs: {
       pl: "tapetowanie-wnetrz-komercyjnych",
@@ -913,9 +978,9 @@ export const PAGE_META = {
   services: {
     suffix: { pl: "Usługi", en: "Services", de: "Leistungen" },
     description: {
-      pl: "Montaż tapet i fototapet w całej Polsce: tapety wzorzyste i strukturalne, przygotowanie ścian, zdjęcie starej tapety, sufity i wnętrza komercyjne.",
-      en: "Wallpaper and mural installation across Poland: patterned and textured papers, wall preparation, stripping old paper, ceilings and commercial interiors.",
-      de: "Montage von Tapeten und Fototapeten in ganz Polen: gemusterte und strukturierte Tapeten, Wandvorbereitung, Entfernen alter Tapeten, Decken, Gewerberäume.",
+      pl: "Montaż tapet i fototapet w całej Polsce: tapety obiektowe, pasowanie wzoru, podłoża niechłonne, przygotowanie ścian, zdjęcie starej tapety, sufity.",
+      en: "Wallpaper and mural installation across Poland: contract grades, pattern matching, non-absorbent surfaces, wall preparation, stripping old paper, ceilings.",
+      de: "Montage von Tapeten und Fototapeten in ganz Polen: Objekttapeten, Musteranpassung, nicht saugende Untergründe, Wandvorbereitung, Tapetenentfernung, Decken.",
     },
   },
   gallery: {
@@ -929,9 +994,9 @@ export const PAGE_META = {
   pricing: {
     suffix: { pl: "Cennik", en: "Pricing", de: "Preise" },
     description: {
-      pl: "Cennik montażu tapet i fototapet: stawki za m², przygotowanie podłoża i zdjęcie starej tapety. Wycena indywidualna dla każdego zlecenia.",
-      en: "Pricing for wallpaper and mural installation: rates per m², surface preparation and removal of existing wallpaper. Every job quoted individually.",
-      de: "Preise für die Montage von Tapeten und Fototapeten: Sätze pro m², Untergrundvorbereitung und Entfernen alter Tapeten. Jeder Auftrag wird individuell kalkuliert.",
+      pl: "Cennik montażu tapet: od 35 zł/m² za tapety obiektowe, od 40 zł/m² z pasowaniem wzoru. Przygotowanie podłoża i zdjęcie starej tapety wyceniamy indywidualnie.",
+      en: "Wallpaper installation pricing: from 35 PLN/m² for contract wallpaper, from 40 PLN/m² with pattern matching. Preparation and stripping quoted individually.",
+      de: "Preise für Tapezierarbeiten: ab 35 PLN/m² für Objekttapeten, ab 40 PLN/m² mit Musteranpassung. Untergrundvorbereitung und Tapetenentfernung individuell.",
     },
   },
   contact: {

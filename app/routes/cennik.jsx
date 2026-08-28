@@ -11,7 +11,9 @@ import { useContent } from "../lib/useContent";
  * The placeholder notice is a <p role="status"> above the table rather than a
  * visually-styled aside, so it is announced and cannot be mistaken for
  * decoration. It disappears on its own when `pricingIsPlaceholder` is turned off
- * in the Studio — see PRICING in app/lib/inlineCopy.js.
+ * in the Studio — see PRICING in app/lib/inlineCopy.js. With real rates in place
+ * it is normally absent; the "not a binding offer" line below the intro is the
+ * one that stays up.
  */
 export default function PricingPage() {
   const content = useContent();
@@ -32,7 +34,18 @@ export default function PricingPage() {
         </p>
       )}
 
-      <p className="text-16 text-content mb-10 max-w-prose">{pricing?.intro}</p>
+      <p className="text-16 text-content mb-6 max-w-prose">{pricing?.intro}</p>
+
+      {/*
+        Shown unconditionally, unlike the placeholder box above it: the rates are
+        real, and a range is still not a quotation. Above the table rather than
+        among the notes below it, so it is read before the numbers rather than
+        after somebody has already decided what the wall will cost. Bundled, not
+        CMS-driven — see pricingFrom() in content.server.js.
+      */}
+      <p className="text-14 text-gray-accessible mb-10 max-w-prose">
+        {pricing?.notAnOffer}
+      </p>
 
       {/*
         `overflow-x-auto` on the wrapper, not the table. At 260px the three
