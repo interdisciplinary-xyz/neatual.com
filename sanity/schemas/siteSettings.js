@@ -1,4 +1,5 @@
 import { localizedField } from "../lib/localizedField.js";
+import { phoneShape, emailShape } from "../lib/contactValidation.js";
 
 export const siteSettings = {
   name: "siteSettings",
@@ -26,13 +27,37 @@ export const siteSettings = {
       description:
         "The first thing a keyboard or screen-reader user reaches on every page. It jumps past the header to the page content.",
     }),
+    // Phone and email are the only two fields whose value is concatenated
+    // straight into a URL: kontakt.jsx builds `tel:` and `mailto:` from them.
+    // A `string` field renders as a single-line input in the Studio, which is
+    // why these looked safe, but the Studio is not the only writer — the seed
+    // script, `pnpm content:push` and the HTTP API all reach the same document,
+    // and none of them is a text box. A newline or a stray `?subject=` arriving
+    // that way produces a link that silently does nothing when tapped, on the
+    // one page whose entire job is being contactable.
+    //
+    // Validated at edit time rather than sanitised at render on purpose.
+    // Stripping bad input in kontakt.jsx would leave the bad value in the CMS,
+    // correct-looking in the Studio and wrong anywhere else it is read.
+    //
+    // The predicates are in ../lib/contactValidation.js so the test suite can
+    // run them — see the note at the top of that file.
     {
       name: "phone",
       title: "Phone",
       type: "string",
-      description: "Identical across all languages, so it is not translated.",
+      description:
+        "Identical across all languages, so it is not translated. Digits, spaces and one leading + — it goes into the tel: link as written, with the spaces removed.",
+      validation: (Rule) => Rule.required().custom(phoneShape),
     },
-    { name: "email", title: "Email", type: "string" },
+    {
+      name: "email",
+      title: "Email",
+      type: "string",
+      description:
+        "Goes into the mailto: link as written. One plain address — no display name, no ?subject=.",
+      validation: (Rule) => Rule.required().custom(emailShape),
+    },
     {
       name: "address",
       title: "Address",
