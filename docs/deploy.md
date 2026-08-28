@@ -92,3 +92,63 @@ human will see in time, which is what the scheduled CMS probe exists to cover.
 
 Deployed separately, to https://neatual.sanity.studio, by `pnpm sanity:deploy`.
 It is not part of the Vercel build and does not redeploy when the site does.
+
+## Branch protection on `master`
+
+Because a merge to `master` deploys to production, the gate on merging *is* the
+gate on deploying. It is recorded here because branch protection lives in
+GitHub's settings, not in the repo — nothing in a clone reveals it, and it does
+not survive the repo moving to another account.
+
+Applied 28 August 2026. Before that, `master` was not protected at all.
+
+| Rule | Value |
+| --- | --- |
+| Pull request required | yes — no direct pushes |
+| Approving reviews required | **0** |
+| Required checks | Lint & build · Dependency audit · Secret scan · Lighthouse budgets · Production boot smoke test |
+| Branch must be up to date before merging | yes |
+| Applies to administrators | yes |
+| Force push | blocked |
+| Branch deletion | blocked |
+
+**Why zero approvals.** The rule that matters is "every change goes through a
+PR and every check passes"; requiring an approving review on a single-maintainer
+repo would only mean nothing could ever merge, because GitHub does not let an
+author approve their own pull request. Zero approvals still forces the PR, still
+runs the five checks, and still blocks a direct push. Raise it the day there is
+a second maintainer.
+
+**Why the check names look different from the job ids.** Protection matches the
+*display* name of a check run, not the job key in `ci.yml` — so it is
+`Lint & build`, not `quality`. Renaming a job's `name:` silently stops it being
+required, because a rule naming a check that never reports is a rule that never
+blocks anything. Change both together.
+
+Two other checks report on PRs and are deliberately **not** required: CodeQL
+(GitHub default setup, not defined in `ci.yml`) and Vercel's preview comment.
+
+To restore this after an account or repository move:
+
+```sh
+gh api -X PUT repos/<owner>/<repo>/branches/master/protection --input - <<'JSON'
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": ["Lint & build", "Dependency audit", "Secret scan",
+                 "Lighthouse budgets", "Production boot smoke test"]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 0,
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false
+  },
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}
+JSON
+```
+
+Verify with `gh api repos/<owner>/<repo>/branches/master/protection`.
