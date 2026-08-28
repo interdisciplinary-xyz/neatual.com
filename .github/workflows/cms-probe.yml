@@ -58,7 +58,7 @@ jobs:
 
       # Runs the same predicate getContent() uses to decide whether to fall
       # back, imported rather than restated — see scripts/probe-cms.mjs.
-      - name: Probe
+      - name: Can Sanity answer at all?
         id: probe
         run: |
           if [ "${{ inputs.simulate_failure }}" = "true" ]; then
@@ -66,6 +66,27 @@ jobs:
           else
             node scripts/probe-cms.mjs
           fi
+
+      # A second, quieter failure the first step cannot see.
+      #
+      # The probe asks whether the response is *usable*. This asks whether it is
+      # *current*. A dataset can answer every query with a complete, valid
+      # document set and still be months behind the code: new copy shipped, new
+      # slugs shipped, and nobody re-seeded. The site then renders correctly
+      # from whichever source answered, and the two disagree in silence — which
+      # is the exact drift `pnpm content:check` was written for, run until now
+      # only by hand.
+      #
+      # Read-only: the token gate in content-sync.mjs is on the push path, not
+      # this one, so no credential is needed to ask the question.
+      #
+      # Deliberately NOT a PR gate. It depends on live external state, so as a
+      # required check it would block every merge whenever Sanity was slow or a
+      # re-seed was pending — and a gate that blocks unrelated work is a gate
+      # that gets removed.
+      - name: Is the dataset current?
+        if: ${{ !inputs.simulate_failure }}
+        run: pnpm content:check
 
       # A failed scheduled run emails whoever owns the repo, which satisfies
       # "a human sees it within a day" on its own. The issue is belt and braces:
@@ -81,16 +102,26 @@ jobs:
           title="CMS probe failing — the site is serving bundled copy"
           existing=$(gh issue list --state open --label cms-probe --json number --jq '.[0].number')
           body=$(printf '%s\n' \
-            "The scheduled CMS probe failed. The site is **up**, and that is the problem:" \
-            "\`getContent()\` has fallen back to \`app/lib/locales.js\`, so the pages look" \
-            "right and every edit made in the Studio is invisible to visitors." \
+            "The scheduled CMS probe failed. The site is **up** either way — that is" \
+            "what makes both of these hard to notice. Check the run to see which step" \
+            "went red:" \
+            "" \
+            "**Can Sanity answer at all?** — \`getContent()\` is falling back to" \
+            "\`app/lib/locales.js\`. Pages look right and every edit made in the Studio" \
+            "is invisible to visitors. Check https://www.sanity.io/manage/project/kyyf7nu9" \
+            "and the Vercel runtime logs for \`[content] Falling back\`." \
+            "" \
+            "**Is the dataset current?** — Sanity answers, but with content the code has" \
+            "moved past. Whichever source wins renders different text, and neither is" \
+            "wrong enough to fail. Usually means copy shipped without a re-seed:" \
+            "\`pnpm seed:sanity:import\`." \
             "" \
             "Run: $RUN_URL" \
             "" \
-            "Check https://www.sanity.io/manage/project/kyyf7nu9, then the Vercel runtime" \
-            "logs for \`[content] Falling back\`. Reproduce locally with:" \
+            "Reproduce locally:" \
             "" \
-            "    node --env-file-if-exists=.env scripts/probe-cms.mjs")
+            "    node --env-file-if-exists=.env scripts/probe-cms.mjs" \
+            "    pnpm content:check")
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body "$body"
           else

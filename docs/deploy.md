@@ -88,6 +88,31 @@ anywhere. The one application-level warning worth catching —
 `[content] Falling back to app/lib/locales.js` — is therefore not something a
 human will see in time, which is what the scheduled CMS probe exists to cover.
 
+## Keeping the dataset in step with the code
+
+Copy lives in two places — Sanity, and the bundled fallback in
+`app/lib/locales.js` / `app/lib/inlineCopy.js` — and `content.server.js`
+switches between them silently. Whenever a release changes copy, adds a page to
+`PAGE_KEYS`, or adds a service, **the dataset has to be re-seeded** or the two
+drift apart:
+
+```sh
+pnpm seed:sanity:import   # uses your `sanity login` session
+pnpm seed:sanity          # or a SANITY_WRITE_TOKEN, e.g. from CI
+pnpm content:check        # confirms the two agree; read-only, no credential
+```
+
+This is not hypothetical. Between 12 and 28 August 2026 the dataset was missing
+two of five `page` documents and all six `service` documents, so the site served
+bundled copy on every request while the Studio did nothing — and separately, 147
+fields had drifted, including translated slugs the code had moved past. Neither
+was visible from the outside, because both render a correct-looking page.
+
+The scheduled CMS probe now asks both questions daily: whether Sanity can answer
+at all, and whether what it holds still matches the code. Neither is a PR gate —
+they depend on live external state, and a required check that blocks every merge
+when Sanity is slow is a check that gets removed.
+
 ## Sanity Studio
 
 Deployed separately, to https://neatual.sanity.studio, by `pnpm sanity:deploy`.

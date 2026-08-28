@@ -12,10 +12,16 @@ It previously made uniforms. Any copy mentioning uniforms or 25 years is stale, 
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js
 - **Package Manager**: pnpm
+- **React 19.** Moved from 18 on 28 August 2026. Nothing was pinned to 18 in the
+  end: `sanity@4.22.0` peers `react: "^18||^19"`, and so does everything else
+  in the tree.
 - **CMS**: Sanity 4.x — field-level i18n, Studio at https://neatual.sanity.studio.
-  Pinned to 4.x because 5.x+ requires React 19 and this app is on React 18.
-  Content flows through `app/lib/content.server.js`, which falls back to
-  `app/lib/locales.js` if Sanity is unreachable.
+  Still on 4.x, but no longer for the reason this file used to give ("5.x+
+  requires React 19 and this app is on React 18"). That was read backwards:
+  4.x already supported both, so React 18 was never what held Sanity here.
+  There is simply no reason to move yet. Content flows through
+  `app/lib/content.server.js`, which falls back to `app/lib/locales.js` if
+  Sanity is unreachable.
 
 ## Project Structure
 
