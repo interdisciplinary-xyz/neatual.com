@@ -8,7 +8,7 @@ with "well, it depends which one is live."
 | --- | --- |
 | Host | Vercel |
 | Project | `neatual-com` (team `micha-dopieralskis-projects`) |
-| Framework preset | `remix` |
+| Framework preset | `react-router` (pinned in `vercel.json`) |
 | Node | 24.x |
 | Repository | `interdisciplinary-xyz/neatual.com` |
 | Production domains | `neatual.com`, `www.neatual.com` |
@@ -37,7 +37,7 @@ to go through CI again.
 This is the thing to know before changing anything about headers, compression
 or proxy trust.
 
-Vercel's `remix` preset builds the app and serves it through its own adapter.
+Vercel's `react-router` preset builds the app and serves it through its own adapter.
 The Express server in `server.js` is never loaded there. It is still the real
 server for `pnpm start`, the CI smoke job and the Lighthouse run — but nothing
 it does at the HTTP layer reaches a visitor.

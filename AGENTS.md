@@ -2,11 +2,11 @@
 
 ## Project Overview
 
-Neatual.com is a company website for Neatual, a Polish wallpaper-hanging company working across Poland. Installation only — the client or their designer supplies the wallpaper. Built with **Remix** and **Tailwind CSS**.
+Neatual.com is a company website for Neatual, a Polish wallpaper-hanging company working across Poland. Installation only — the client or their designer supplies the wallpaper. Built with **React Router 7** and **Tailwind CSS**.
 
 ## Tech Stack
 
-- **Framework**: Remix 2 (React Router)
+- **Framework**: React Router 7, framework mode (migrated from Remix 2)
 - **Styling**: Tailwind CSS
 - **Runtime**: Node.js
 - **Package Manager**: pnpm

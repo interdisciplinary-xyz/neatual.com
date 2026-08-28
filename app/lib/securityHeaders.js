@@ -9,7 +9,7 @@
  * ./server.js` and asserts every one of them is present, and it passed.
  *
  * Vercel does not run `server.js`. The project's framework preset builds the
- * Remix app and serves it through Vercel's own adapter, so the Express app —
+ * app and serves it through Vercel's own adapter, so the Express app —
  * and every header it sets — is dead code in production. Measured on
  * 28 August 2026 against https://www.neatual.com/: no Content-Security-Policy,
  * no X-Content-Type-Options, no Referrer-Policy, no X-Frame-Options, and an

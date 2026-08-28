@@ -2,6 +2,13 @@ node_modules
 .DS_Store
 build
 dist
+
+# React Router's generated types and route manifest.
+.react-router
+
+# Written by the Vercel preset during `pnpm build`. Build output, not config —
+# vercel.json is the checked-in half.
+.vercel
 .cache
 .sanity
 .env

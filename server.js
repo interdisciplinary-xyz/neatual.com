@@ -1,5 +1,6 @@
-import { createRequestHandler } from "@remix-run/express";
+import { createRequestHandler } from "@react-router/express";
 
+import { resolveServerBuild } from "./scripts/resolve-server-build.mjs";
 import {
   CONTENT_SECURITY_POLICY,
   STRICT_TRANSPORT_SECURITY,
@@ -109,9 +110,13 @@ if (viteDevServer) {
   app.use(express.static("build/client", { maxAge: "1h" }));
 }
 
+// Not a hardcoded "./build/server/index.js". The Vercel preset emits one
+// bundle per configured runtime, into a directory named after a base64 of the
+// runtime options, so the path is generated rather than fixed — see
+// scripts/resolve-server-build.mjs.
 const build = viteDevServer
-  ? () => viteDevServer.ssrLoadModule("virtual:remix/server-build")
-  : await import("./build/server/index.js");
+  ? () => viteDevServer.ssrLoadModule("virtual:react-router/server-build")
+  : await import(resolveServerBuild());
 
 app.all("*", createRequestHandler({ build }));
 
