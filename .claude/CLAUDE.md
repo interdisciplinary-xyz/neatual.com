@@ -2,7 +2,9 @@
 
 ## Project Overview
 
-Neatual.com is a company website for Neatual, a Polish wallpaper-hanging company working across Poland. Installation only — the client or their designer supplies the wallpaper. (It previously made uniforms; any copy mentioning uniforms or 25 years is stale.) Built with **React Router 7** and **Tailwind CSS**.
+Neatual.com is a company website for Neatual, a Polish wallpaper-hanging company working across Poland. Installation only — the client or their designer supplies the wallpaper. Built with **React Router 7** and **Tailwind CSS**.
+
+It previously made uniforms. Any copy mentioning uniforms or 25 years is stale, and `test/stale-copy.spec.js` now fails on it across every shipped path. That guard replaced this warning rather than the warning being retired: the 17 August audit proposed dropping it as having done its job, having grepped `app/` and `sanity/` — while `scripts/generate-og-image.mjs` was still rendering "Produkcja i dystrybucja uniformów / od ponad 25 lat" into the Open Graph card on every build.
 
 ## Tech Stack
 
