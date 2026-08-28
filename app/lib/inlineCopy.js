@@ -19,6 +19,24 @@ export const BRAND = {
   name: "neatual",
 };
 
+/**
+ * The two lines under the wordmark on the Open Graph card,
+ * public/og-image.jpg, rendered by scripts/generate-og-image.mjs.
+ *
+ * Here rather than in the generator because the generator is where they were
+ * missed. The card read "Produkcja i dystrybucja uniformów / od ponad 25 lat"
+ * from the day it was created until 28 August 2026 — the uniform business,
+ * still being advertised by every share of the site on every platform, months
+ * after all of the on-page copy had been rewritten. The rewrite swept app/ and
+ * the CMS; a script that draws text into a JPEG was not somewhere anyone
+ * thought to look for sentences.
+ *
+ * Polish only, deliberately: og:image is one URL for all three locales.
+ *
+ * test/stale-copy.spec.js fails if the old business resurfaces anywhere.
+ */
+export const OG_CARD_LINES = ["Montaż tapet i fototapet", "w całej Polsce"];
+
 /** The skip-to-content link, previously an inline ternary in app/root.jsx. */
 export const SKIP_LINK = {
   pl: "Przejdź do treści",

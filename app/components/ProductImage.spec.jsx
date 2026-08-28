@@ -11,7 +11,7 @@ describe("ProductImage", () => {
     const { container } = render(
       <ProductImage
         base={BASE}
-        alt="Uniform"
+        alt="Tapeta"
         width={400}
         height={400}
         sizes="120px"
@@ -32,7 +32,7 @@ describe("ProductImage", () => {
     const { container } = render(
       <ProductImage
         base={BASE}
-        alt="Uniform"
+        alt="Tapeta"
         width={400}
         height={400}
         sizes="120px"
@@ -49,7 +49,7 @@ describe("ProductImage", () => {
     const { container } = render(
       <ProductImage
         base={BASE}
-        alt="Uniform"
+        alt="Tapeta"
         width={400}
         height={400}
         sizes="120px"
@@ -63,7 +63,7 @@ describe("ProductImage", () => {
     render(
       <ProductImage
         base={BASE}
-        alt="Uniform"
+        alt="Tapeta"
         width={400}
         height={400}
         sizes="120px"
@@ -79,7 +79,7 @@ describe("ProductImage", () => {
     const { unmount } = render(
       <ProductImage
         base={BASE}
-        alt="Uniform"
+        alt="Tapeta"
         width={400}
         height={400}
         sizes="120px"
@@ -91,7 +91,7 @@ describe("ProductImage", () => {
     render(
       <ProductImage
         base={BASE}
-        alt="Uniform"
+        alt="Tapeta"
         width={400}
         height={400}
         sizes="120px"
@@ -107,7 +107,7 @@ describe("ProductImage", () => {
       <>
         <ProductImage
           base={BASE}
-          alt="Uniform wzór nr 2"
+          alt="Tapeta wzór nr 2"
           width={400}
           height={400}
           sizes="120px"

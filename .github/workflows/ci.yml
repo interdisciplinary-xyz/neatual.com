@@ -44,7 +44,12 @@ jobs:
 
       - run: pnpm format:check
 
-      - run: pnpm test
+      # `--coverage` rather than a bare `pnpm test`, and deliberately with no
+      # threshold. A number in the log is enough to notice a module drifting
+      # uncovered; a gate would either sit below the real figure and mean
+      # nothing, or fail a PR that adds a well-tested feature to a file that
+      # happens to dilute the percentage.
+      - run: pnpm test --coverage
 
       - run: pnpm build
 

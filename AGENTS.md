@@ -4,6 +4,8 @@
 
 Neatual.com is a company website for Neatual, a Polish wallpaper-hanging company working across Poland. Installation only — the client or their designer supplies the wallpaper. Built with **React Router 7** and **Tailwind CSS**.
 
+It previously made uniforms. Any copy mentioning uniforms or 25 years is stale, and `test/stale-copy.spec.js` fails on it across every shipped path.
+
 ## Tech Stack
 
 - **Framework**: React Router 7, framework mode (migrated from Remix 2)

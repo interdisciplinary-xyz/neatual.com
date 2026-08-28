@@ -1,8 +1,13 @@
 // Renders public/og-image.jpg, the Open Graph / Twitter card.
 //
-// The site had no og:image at all, so every share of it — the whole
-// social-referral surface for a B2B manufacturer — rendered as a bare text
-// card. See §1.1 of docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md.
+// The site had no og:image at all, so every share of it rendered as a bare
+// text card. See §1.1 of docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md.
+//
+// The text is NOT written here. It comes from OG_CARD_LINES in
+// app/lib/inlineCopy.js, because for months this file hardcoded "Produkcja i
+// dystrybucja uniformów / od ponad 25 lat" — the previous business — and went
+// on generating it into the card every deploy while every other surface said
+// wallpaper. Copy belongs where copy is reviewed.
 //
 // Built from the same logo geometry as app/components/icons/LogoIcon.jsx on
 // the brand background from tailwind.config.js. Run: pnpm og:generate
@@ -10,6 +15,8 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+
+import { BRAND, OG_CARD_LINES } from "../app/lib/inlineCopy.js";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "public", "og-image.jpg");
@@ -38,13 +45,15 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${
   </g>
   <text x="${logoX + logoW + 90}" y="${HEIGHT / 2 - 26}"
         font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
-        font-size="72" font-weight="500" fill="#000">neatual.com</text>
-  <text x="${logoX + logoW + 90}" y="${HEIGHT / 2 + 34}"
+        font-size="72" font-weight="500" fill="#000">${BRAND.wordmark}</text>
+${OG_CARD_LINES.map(
+  (
+    line,
+    i
+  ) => `  <text x="${logoX + logoW + 90}" y="${HEIGHT / 2 + 34 + i * 46}"
         font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
-        font-size="32" fill="#393939">Produkcja i dystrybucja uniformów</text>
-  <text x="${logoX + logoW + 90}" y="${HEIGHT / 2 + 80}"
-        font-family="Helvetica Neue, Helvetica, Arial, sans-serif"
-        font-size="32" fill="#393939">od ponad 25 lat</text>
+        font-size="32" fill="#393939">${line}</text>`
+).join("\n")}
 </svg>`;
 
 const buf = await sharp(Buffer.from(svg)).jpeg({ quality: 88 }).toBuffer();
