@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   Link,
   Links,
@@ -8,9 +9,10 @@ import {
   isRouteErrorResponse,
   useLoaderData,
   useLocation,
+  useNavigation,
   useRouteError,
-} from "@remix-run/react";
-import { ProgressProvider } from "@bprogress/remix";
+} from "react-router";
+import { ProgressProvider, useProgress } from "@bprogress/react";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { SplashScreen } from "./components/SplashScreen";
@@ -383,6 +385,33 @@ export async function loader({ request }) {
   return { pathname: url.pathname, content };
 }
 
+/**
+ * Drives the progress bar from the router's own navigation state.
+ *
+ * `useNavigation().state` is "idle" when nothing is in flight and "loading" or
+ * "submitting" while a client-side navigation resolves. That is the exact
+ * question the bar is asking, so there is no click handling, no list of
+ * href schemes to skip, and nothing to keep in step with the markup.
+ *
+ * Must live inside <ProgressProvider>: useProgress() reads the provider's
+ * context, and start/stop are no-ops without it.
+ */
+function NavigationProgress() {
+  const { state } = useNavigation();
+  const { start, stop } = useProgress();
+
+  useEffect(() => {
+    // A route whose loader resolves from cache can go loading -> idle inside a
+    // single frame, so this deliberately does not guard on "was it running".
+    // BProgress treats stop() with no bar showing as a no-op, and a bar that
+    // flickers for one frame is better than one that starts and never clears.
+    if (state === "idle") stop();
+    else start();
+  }, [state, start, stop]);
+
+  return null;
+}
+
 export default function App() {
   const { pathname, content } = useLoaderData() ?? { pathname: "/" };
   const locale = getLocaleFromPath(pathname);
@@ -444,7 +473,7 @@ export default function App() {
       <body className="min-h-screen bg-background text-black">
         {/*
           A GitHub-style bar across the top of the viewport while a client-side
-          navigation is in flight. Remix has no built-in pending indicator, so
+          navigation is in flight. There is no built-in pending indicator, so
           between the click and the next route's loader resolving the page just
           sits there — on a slow connection that reads as a dead link, and the
           visitor clicks again.
@@ -463,13 +492,20 @@ export default function App() {
           because its width is animated by script and carries no aria-valuenow —
           a progressbar role that never reports a value is worse than none.
 
-          Anchor clicks are how it starts: BProgress attaches to every <a> in
-          the document, which covers the CMS-driven nav and any Link a route
-          renders, without either having to know this exists. It skips tel: and
-          mailto: — both of which the contact page has — target="_blank", and
-          modified clicks, so the bar does not run for a navigation that never
-          happens. It stops on the location change, which is why this sits
-          inside the route tree rather than beside it.
+          What changed with React Router 7: this used to be @bprogress/remix,
+          which starts the bar by attaching a click handler to every <a> in the
+          document. There is no @bprogress/react-router — the package does not
+          exist — and the Remix one imports useLocation and useNavigate from
+          @remix-run/react, which is gone. So the bar is now driven from
+          useNavigation() by <NavigationProgress> below.
+
+          That is a better signal, not just an available one. The old handler
+          had to guess which clicks would become navigations, and carried
+          exclusions for tel:, mailto:, target="_blank" and modified clicks —
+          all of which the contact page exercises. useNavigation() reports what
+          the router is actually doing, so those exclusions are not needed:
+          none of them ever enters the router. It also covers navigations that
+          begin without a click, which the handler could not see at all.
         */}
         <ProgressProvider
           color="#000000"
@@ -479,6 +515,7 @@ export default function App() {
             template: '<div class="bar" aria-hidden="true"></div>',
           }}
         >
+          <NavigationProgress />
           <SplashScreen wordmark={content?.settings.wordmark} />
           {/*
             The skip link is the first thing a keyboard user reaches, and it is

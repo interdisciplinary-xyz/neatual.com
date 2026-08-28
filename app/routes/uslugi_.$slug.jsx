@@ -1,5 +1,4 @@
-import { redirect } from "@remix-run/node";
-import { Link, useLocation, useParams } from "@remix-run/react";
+import { Link, redirect, useLocation, useParams } from "react-router";
 import { getLocaleFromPath } from "../lib/locales";
 import {
   findBySlug,

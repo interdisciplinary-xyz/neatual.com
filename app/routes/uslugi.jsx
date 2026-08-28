@@ -1,4 +1,4 @@
-import { Link, useLocation } from "@remix-run/react";
+import { Link, useLocation } from "react-router";
 import { getLocaleFromPath } from "../lib/locales";
 import { servicePath } from "../lib/seo";
 import { useContent } from "../lib/useContent";

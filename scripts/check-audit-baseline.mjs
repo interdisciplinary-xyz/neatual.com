@@ -1,15 +1,15 @@
 // Fails when `pnpm audit --prod` reports more advisories at any severity than
 // the recorded baseline.
 //
-// A plain `--audit-level high` gate would be permanently red: the four open
-// advisories are all in React Router, all patched only in react-router >=
-// 7.18.0, and Remix 2 pins the 6.x line. See §1 of
-// docs/audits/2026-08-10-security-dependency-audit.md. A gate that can never
-// pass gets disabled, and then nothing checks dependencies at all — which is
-// the state the audit found.
+// The baseline used to tolerate four advisories that could not be fixed: they
+// were all in React Router, all patched only in react-router >= 7.18.0, and
+// Remix 2 pinned the 6.x line. A gate that can never pass gets disabled, and
+// then nothing checks dependencies at all — which is the state the first audit
+// found. Tolerating exactly the known set was the way to keep the gate alive.
 //
-// So this tolerates exactly the known set and fails on anything new. When the
-// React Router 7 migration lands, drop the baseline to zeros.
+// The React Router 7 migration has landed, so the baseline is zeros, as the
+// note here always said it should become. It is now an absolute gate: any
+// advisory at any severity fails the build.
 //
 // Run: pnpm audit:check
 
@@ -18,11 +18,16 @@ import { promisify } from "node:util";
 
 const run = promisify(execFile);
 
-// Recorded 10 August 2026 on Remix 2.17.5 / react-router 6.30.4:
-//   high     1 — turbo-stream DoS via reflected user input
-//   moderate 3 — react-router open redirect (x2) and deserializeErrors
-//                constructor injection
-const BASELINE = { critical: 0, high: 1, moderate: 3, low: 0 };
+// Zero, on react-router 7.18.3. The four advisories cleared by three separate
+// mechanisms, none of which was a version bump on the vulnerable package:
+//   high     turbo-stream DoS — turbo-stream stopped being a react-router
+//            dependency at 7.9.0 and is no longer in the tree at all
+//   moderate react-router open redirect (x2) and deserializeErrors constructor
+//            injection — patched in 7.18.0
+//   moderate react-router-dom open redirect, which had no patched release —
+//            react-router-dom was collapsed into react-router in 7.0.0, so the
+//            package left the tree rather than being fixed
+const BASELINE = { critical: 0, high: 0, moderate: 0, low: 0 };
 
 const { stdout } = await run("pnpm", ["audit", "--prod", "--json"], {
   maxBuffer: 32 * 1024 * 1024,

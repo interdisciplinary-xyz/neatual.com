@@ -29,7 +29,7 @@ echo "==> Production build"
 pnpm build
 
 echo "==> Verifying artifacts"
-test -f build/server/index.js || { echo "missing build/server/index.js"; exit 1; }
+node scripts/resolve-server-build.mjs > /dev/null || exit 1
 test -d build/client/assets  || { echo "missing build/client/assets"; exit 1; }
 test -f public/og-image.jpg  || { echo "missing public/og-image.jpg"; exit 1; }
 

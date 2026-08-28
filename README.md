@@ -1,10 +1,10 @@
 # Neatual.com
 
-Company website for Neatual – a Polish wallpaper-hanging company working across Poland. Built with **Remix** and **Tailwind CSS**.
+Company website for Neatual – a Polish wallpaper-hanging company working across Poland. Built with **React Router 7** and **Tailwind CSS**.
 
 ## Tech Stack
 
-- **Remix** – Full-stack React framework
+- **React Router 7** – Full-stack React framework, in framework mode
 - **Tailwind CSS** – Styling
 - **React 18** – UI
 
@@ -106,7 +106,7 @@ other branch gets a preview URL. `./deploy.sh` reproduces the CI checks
 locally and deliberately pushes nowhere.
 
 One thing that is not obvious: **`server.js` does not run in production.**
-Vercel's `remix` preset serves the built app through its own adapter, so the
+Vercel's `react-router` preset serves the built app through its own adapter, so the
 Express server is the one used by `pnpm start`, the CI smoke job and the
 Lighthouse run only. Security headers therefore live in
 `app/lib/securityHeaders.js` and are applied twice — by `server.js` for local

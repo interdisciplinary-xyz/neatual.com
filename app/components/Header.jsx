@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation } from "@remix-run/react";
+import { Link, useLocation } from "react-router";
 import { CloseIcon, LogoIcon, MenuIcon } from "./icons";
 import { useModalBehaviour } from "./useModalBehaviour";
 import { CHROME_FRAME } from "./frame";

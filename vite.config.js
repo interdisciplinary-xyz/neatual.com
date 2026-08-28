@@ -1,32 +1,18 @@
-import { vitePlugin as remix } from "@remix-run/dev";
+import { reactRouter } from "@react-router/dev/vite";
 import { defineConfig } from "vite";
 
+// The four v3_* future flags this file used to carry are gone, not disabled:
+// they were Remix 2's opt-in preview of React Router 7's behaviour, and in
+// React Router 7 that behaviour is simply how it works. Enabling them before
+// the migration is what made the migration small.
+//
+// v3_singleFetch was the one deliberately left off, on the grounds that
+// changing loader serialisation while the root loader was being rewritten
+// would make any breakage ambiguous. Single fetch is not optional in React
+// Router 7, so that decision expires here rather than being reversed. It cost
+// nothing to give up: the root loader already returns a plain object, no route
+// exports `headers`, and nothing in the app called `json()` or `defer()` —
+// which is what single fetch would have broken.
 export default defineConfig({
-  plugins: [
-    remix({
-      // Remix 2 is in maintenance; React Router 7 is the continuation, and it
-      // is the only thing that clears the four open advisories in
-      // docs/audits/2026-08-10-security-dependency-audit.md — they are all
-      // patched in react-router >= 7.18.0, which Remix 2 cannot use. Opting
-      // into the future flags now de-risks that migration and silences five
-      // build warnings nobody had triaged.
-      //
-      // Verified safe for this codebase before enabling: no useFetcher
-      // anywhere (v3_fetcherPersist), no splat routes (v3_relativeSplatPath),
-      // nine static routes and no dynamic discovery (v3_lazyRouteDiscovery).
-      future: {
-        v3_fetcherPersist: true,
-        v3_lazyRouteDiscovery: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-
-        // v3_singleFetch is deliberately NOT enabled yet. It changes how
-        // loader data is serialised and revalidated, and the root loader is
-        // being rewritten to fetch CMS content as this lands. Turning both
-        // over at once would make any breakage ambiguous. Enable it as its
-        // own change once the CMS loader is settled — it is the last
-        // remaining build warning.
-      },
-    }),
-  ],
+  plugins: [reactRouter()],
 });

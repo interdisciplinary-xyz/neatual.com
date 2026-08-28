@@ -5,15 +5,15 @@
   "packageManager": "pnpm@10.22.0",
   "scripts": {
     "audit:check": "node scripts/check-audit-baseline.mjs",
-    "build": "remix vite:build",
+    "build": "react-router build",
     "cache:clean": "rm -rf node_modules build dist .cache .sanity && echo 'Caches cleared. Run pnpm install to reinstall.'",
     "content:check": "node --env-file-if-exists=.env scripts/content-sync.mjs --check",
     "content:pull": "node --env-file-if-exists=.env scripts/content-sync.mjs --pull",
     "content:push": "node --env-file-if-exists=.env scripts/content-sync.mjs --push",
     "dev": "pnpm start:dev",
+    "fonts:fetch": "node scripts/fetch-fonts.mjs",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "fonts:fetch": "node scripts/fetch-fonts.mjs",
     "images:generate": "node scripts/generate-gallery-images.mjs",
     "lint": "eslint ./app",
     "lint:fix": "eslint ./app --fix",
@@ -32,17 +32,17 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@bprogress/remix": "^1.0.19",
+    "@bprogress/react": "^1.2.7",
     "@portabletext/react": "^6.2.0",
-    "@remix-run/express": "^2.15.0",
-    "@remix-run/node": "^2.15.0",
-    "@remix-run/react": "^2.15.0",
+    "@react-router/express": "7.18.3",
+    "@react-router/node": "7.18.3",
     "@sanity/client": "^7.26.2",
     "compression": "^1.8.1",
     "express": "^4.21.0",
-    "isbot": "^4.4.0",
+    "isbot": "^5.1.28",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router": "7.18.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
@@ -51,11 +51,13 @@
   },
   "devDependencies": {
     "@lhci/cli": "^0.15.1",
-    "@remix-run/dev": "^2.15.0",
+    "@react-router/dev": "7.18.3",
+    "@react-router/fs-routes": "7.18.3",
     "@sanity/vision": "^4.22.0",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.3",
+    "@vercel/react-router": "^1.3.6",
     "@vitest/coverage-v8": "^2.1.9",
     "eslint": "^8.57.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
