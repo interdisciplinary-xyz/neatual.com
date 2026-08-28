@@ -467,6 +467,33 @@ export function missingA11yLabels(settings) {
 }
 
 /**
+ * Why a CMS response is unusable, or null when it is fine.
+ *
+ * Exported, and separate from getContent(), so scripts/probe-cms.mjs can ask
+ * the same question on a schedule. The fallback is silent by design — the site
+ * keeps rendering correct-looking copy from app/lib/locales.js while every
+ * edit in the Studio does nothing — so something outside the request path has
+ * to check, and a probe that reimplemented this test would drift from it and
+ * start passing while the site fell back.
+ */
+export function cmsResponseProblem(data) {
+  const missingPages = PAGE_KEYS.filter(
+    (key) => !data?.pages?.some((page) => page.pageKey === key)
+  );
+  if (missingPages.length) return `missing pages: ${missingPages.join(", ")}`;
+  if (!data?.settings) return "missing siteSettings";
+  if (!data?.products?.length) return "missing products";
+
+  const missingLabels = missingA11yLabels(
+    fromSanity(data, DEFAULT_LOCALE).settings
+  );
+  if (missingLabels.length) {
+    return `missing accessibility labels: ${missingLabels.join(", ")}`;
+  }
+  return null;
+}
+
+/**
  * Single entry point for page content. Always resolves — never throws — so a
  * Sanity outage degrades to the bundled copy instead of taking the site down.
  */
@@ -478,26 +505,13 @@ export async function getContent(locale) {
 
   try {
     const data = await sanityClient.fetch(CONTENT_QUERY);
-    const missing = PAGE_KEYS.filter(
-      (key) => !data?.pages?.some((page) => page.pageKey === key)
-    );
-    if (missing.length || !data?.settings || !data?.products?.length) {
-      warnOnce(
-        `incomplete CMS response (missing: ${missing.join(", ") || (!data?.settings ? "siteSettings" : "products")})`
-      );
+    const problem = cmsResponseProblem(data);
+    if (problem) {
+      warnOnce(`incomplete CMS response (${problem})`);
       return fromLocales(locale);
     }
 
-    const content = fromSanity(data, locale);
-    const missingLabels = missingA11yLabels(content.settings);
-    if (missingLabels.length) {
-      warnOnce(
-        `CMS response is missing accessibility labels (${missingLabels.join(", ")})`
-      );
-      return fromLocales(locale);
-    }
-
-    return content;
+    return fromSanity(data, locale);
   } catch (error) {
     warnOnce(`Sanity request failed: ${error.message}`);
     return fromLocales(locale);

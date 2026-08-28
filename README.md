@@ -98,10 +98,16 @@ React 18.
 
 ## Deployment
 
-The app requires a Node.js server. Deploy to:
+**Vercel**, through the Git integration — see [docs/deploy.md](docs/deploy.md)
+for the project, the environment variables and where the logs are.
 
-- **Vercel** – `vercel`
-- **Netlify** – `netlify deploy`
-- **Railway** – Connect your repo
+There is no deploy command. A merge to `master` promotes to production; every
+other branch gets a preview URL. `./deploy.sh` reproduces the CI checks
+locally and deliberately pushes nowhere.
 
-For GitHub Pages, you would need a static export or a serverless function.
+One thing that is not obvious: **`server.js` does not run in production.**
+Vercel's `remix` preset serves the built app through its own adapter, so the
+Express server is the one used by `pnpm start`, the CI smoke job and the
+Lighthouse run only. Security headers therefore live in
+`app/lib/securityHeaders.js` and are applied twice — by `server.js` for local
+and CI, and by `vercel.json` for the live site.

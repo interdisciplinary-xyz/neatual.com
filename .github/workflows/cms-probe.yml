@@ -1,0 +1,111 @@
+name: CMS probe
+
+# Sanity outages are invisible from the outside. getContent() never throws: it
+# falls back to the bundled copy in app/lib/locales.js, so the site keeps
+# serving correct-looking pages while every edit made in the Studio does
+# nothing. Nothing 500s, no budget moves, no page breaks. The only signal was
+# one console.warn per process, to a stdout nobody tails, on a platform whose
+# runtime logs are not shipped anywhere.
+#
+# A failure measured in days needs a schedule, not an error handler.
+#
+# NOTE: scheduled workflows only run from the default branch. This does nothing
+# until it is merged to master.
+on:
+  schedule:
+    # 07:00 UTC daily — 09:00 in Warsaw, so a failure is in the inbox at the
+    # start of the working day rather than overnight. The acceptance bar for
+    # this alarm is "a human sees it within a day"; daily meets it, and a
+    # tighter cadence would only add runs to an outage already being handled.
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: "Force a failure, to prove the alert path end to end"
+        type: boolean
+        default: false
+
+# Never cancel a probe run: a cancelled run reports neither pass nor fail, and
+# a silent alarm is the exact failure this workflow exists to remove.
+concurrency:
+  group: cms-probe
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  probe:
+    name: Can Sanity still answer?
+    runs-on: ubuntu-latest
+    env:
+      # Not secrets. The project id and dataset are public — they are in
+      # .env.example and are readable in any client bundle that talks to Sanity.
+      # The API version is pinned so an API change cannot alter the response
+      # shape under the probe without a commit.
+      SANITY_STUDIO_PROJECT_ID: kyyf7nu9
+      SANITY_STUDIO_DATASET: production
+      SANITY_STUDIO_API_VERSION: "2026-08-10"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      # Runs the same predicate getContent() uses to decide whether to fall
+      # back, imported rather than restated — see scripts/probe-cms.mjs.
+      - name: Probe
+        id: probe
+        run: |
+          if [ "${{ inputs.simulate_failure }}" = "true" ]; then
+            node scripts/probe-cms.mjs --simulate-failure
+          else
+            node scripts/probe-cms.mjs
+          fi
+
+      # A failed scheduled run emails whoever owns the repo, which satisfies
+      # "a human sees it within a day" on its own. The issue is belt and braces:
+      # email is easy to filter, and an open issue is a thing with a state that
+      # someone has to close, rather than a notification that scrolls away.
+      - name: Open or update the alert issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -e
+          title="CMS probe failing — the site is serving bundled copy"
+          existing=$(gh issue list --state open --label cms-probe --json number --jq '.[0].number')
+          body=$(printf '%s\n' \
+            "The scheduled CMS probe failed. The site is **up**, and that is the problem:" \
+            "\`getContent()\` has fallen back to \`app/lib/locales.js\`, so the pages look" \
+            "right and every edit made in the Studio is invisible to visitors." \
+            "" \
+            "Run: $RUN_URL" \
+            "" \
+            "Check https://www.sanity.io/manage/project/kyyf7nu9, then the Vercel runtime" \
+            "logs for \`[content] Falling back\`. Reproduce locally with:" \
+            "" \
+            "    node --env-file-if-exists=.env scripts/probe-cms.mjs")
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label cms-probe --body "$body"
+          fi
+
+      # Closes itself when the outage clears, so the open issue means "broken
+      # now" rather than "was broken once".
+      - name: Close the alert issue if it recovered
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          existing=$(gh issue list --state open --label cms-probe --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue close "$existing" --comment "CMS probe passing again — Sanity is answering with a complete response."
+          fi

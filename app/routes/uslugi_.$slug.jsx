@@ -76,12 +76,24 @@ export default function ServicePage() {
           <h2 className="uppercase font-bold text-14 mb-3">
             {labels?.galleryHeading}
           </h2>
+          {/*
+            `min-h-[24px]` and inline-flex on the anchor, not padding on the
+            <li>: WCAG 2.5.8 measures the target, and a taller list item with
+            the same 17px link inside it is the same 17px target.
+
+            Caught by the Lighthouse gate the moment it was widened to cover
+            this template — `target-size` scored 0 here, taking the page's
+            accessibility category to 0.95. Four category links at a 17px line
+            height with a 4px gap: too short to hit, and too close together for
+            the spacing exemption to apply. Same idiom as the back link below,
+            which already carried it.
+          */}
           <ul className="text-14 mb-8 flex flex-col gap-1">
             {examples.map((category) => (
               <li key={category.slug}>
                 <Link
                   to={galleryCategoryPath(locale, category, content?.paths)}
-                  className="underline hover:no-underline"
+                  className="inline-flex items-center min-h-[24px] underline hover:no-underline"
                 >
                   {category.name}
                 </Link>

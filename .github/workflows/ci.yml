@@ -134,10 +134,11 @@ jobs:
 
       - run: pnpm build
 
-      # The point of this job. `express` and `cross-env` used to sit in
-      # devDependencies while `pnpm start` needed both at runtime, so a pruned
-      # production install booted straight into ERR_MODULE_NOT_FOUND. Nothing
-      # would have caught that except starting the server the way a host does.
+      # The point of this job. `express` and the since-retired `cross-env` used
+      # to sit in devDependencies while `pnpm start` needed both at runtime, so
+      # a pruned production install booted straight into ERR_MODULE_NOT_FOUND.
+      # Nothing would have caught that except starting the server the way a
+      # host does.
       - name: Prune to production dependencies
         run: pnpm install --prod --frozen-lockfile --ignore-scripts
 

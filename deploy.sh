@@ -7,9 +7,14 @@
 # deploy and was not one. It now does the one useful thing it can do locally:
 # reproduce what CI checks, and leave you with verified artifacts.
 #
-# It deliberately does not push anywhere. Neatual runs on a Node server;
-# deployment is `vercel`, `netlify deploy` or a Railway push, and which of
-# those is live is not encoded in this repo.
+# It deliberately does not push anywhere, and there is nothing for it to push:
+# the site deploys to Vercel through the Git integration. A merge to master
+# promotes to production and every other branch gets a preview URL, so the
+# deploy command is `git push`. See docs/deploy.md.
+#
+# The name predates that integration. Kept because the thing it actually does —
+# regenerate derivatives, lint, build, and verify the artifacts exist — is the
+# check worth running before you open the PR that will deploy.
 
 set -e
 
@@ -33,7 +38,12 @@ echo "Build OK."
 echo "  build/client  static assets (content-hashed under /assets)"
 echo "  build/server  server bundle"
 echo
-echo "Run it locally exactly as production does:"
+echo "Run it locally the way the CI smoke job does:"
 echo "  pnpm start"
 echo
-echo "Deploy targets (see README): vercel · netlify deploy · Railway"
+echo "Note that this is NOT how production runs. Vercel serves the built Remix"
+echo "app through its own adapter and never loads server.js — the headers it"
+echo "sets come from vercel.json in production. See docs/deploy.md."
+echo
+echo "To deploy: merge to master. Vercel builds and promotes from the Git"
+echo "integration; there is no command to run here."

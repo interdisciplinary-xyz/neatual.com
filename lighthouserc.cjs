@@ -20,7 +20,30 @@ module.exports = {
       startServerReadyTimeout: 60000,
       // Not just `/`. The audit's worst finding lived on /galeria and the
       // homepage-only gate in the reference repo could not see it.
-      url: [`${base}/`, `${base}/galeria`, `${base}/kontakt`],
+      //
+      // Five URLs, not three: `/galeria/:slug` and `/uslugi/:slug` are
+      // templates, so one unmeasured regression there is six pages wrong, not
+      // one. They were added in v0.2.0 and v0.3.0 and went straight past this
+      // gate — /galeria was measured, the category pages it links to were not.
+      //
+      // One instance of each template is enough because every page from a
+      // template shares its markup; the instances chosen are the worst case
+      // each template offers. `montaz-fototapet-kwiatowych` carries four
+      // photographs, the largest any category has, so it is the heaviest
+      // gallery page. `montaz-fototapet` links four gallery categories, more
+      // than any other service, so it renders the longest service page.
+      //
+      // Polish only. The three locales differ in copy, not in markup or in
+      // image payload, so /en and /de would spend runner minutes re-measuring
+      // the same components — and every locale is already covered for h1s,
+      // status codes and headers by the smoke job.
+      url: [
+        `${base}/`,
+        `${base}/galeria`,
+        `${base}/kontakt`,
+        `${base}/galeria/montaz-fototapet-kwiatowych`,
+        `${base}/uslugi/montaz-fototapet`,
+      ],
       numberOfRuns: 3,
       settings: {
         formFactor: "mobile",
