@@ -18,6 +18,10 @@ dist
 # Lighthouse CI reports (uploaded as a CI artifact instead)
 .lighthouseci
 
+# Written by `pnpm test --coverage`, which the quality job now runs. The
+# summary in the log is the point; the HTML report is a local convenience.
+coverage
+
 # Camera-roll drop zone. Anything under public/ is served, so 22 MB of HEIC
 # masters would be publicly downloadable and shipped on every deploy. The
 # masters that the gallery is built from live in art/gallery-originals/.

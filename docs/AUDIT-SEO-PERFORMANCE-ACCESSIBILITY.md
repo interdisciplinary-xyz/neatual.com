@@ -1,3 +1,16 @@
+> [!NOTE]
+> **Superseded.** This audit predates both the Remix rebuild and the rewrite
+> from the uniform business to wallpaper installation, so parts of it describe
+> a site that no longer exists — including SSR output quoting the old
+> "netual" wordmark and copy that has since been replaced wholesale.
+>
+> It is kept unedited because it is a record of what was observed, and several
+> later decisions cite it by section — `lighthouserc.cjs` for the image
+> findings, `scripts/generate-og-image.mjs` for §1.1, `app/components/PageLayout.jsx`
+> for §2.4. Correcting it would falsify the observation those citations rest on.
+>
+> For current state see [docs/audits/README.md](audits/README.md).
+
 # SEO, Performance & Accessibility Audit
 
 **Project:** neatual.com

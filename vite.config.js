@@ -15,4 +15,29 @@ import { defineConfig } from "vite";
 // which is what single fetch would have broken.
 export default defineConfig({
   plugins: [reactRouter()],
+
+  build: {
+    rollupOptions: {
+      // `sitemap[.]xml.js` is a resource route: it exports a loader and no
+      // component, so it has nothing to send to the browser and Rollup emits
+      // "Generated an empty chunk: sitemap_._xml" plus a 0.00 kB asset on
+      // every build.
+      //
+      // Nothing is wrong — a resource route having no client bundle is the
+      // point of a resource route — but a warning that is always there is a
+      // warning nobody reads, and this build has real ones (the React Router
+      // v8 future flags) worth being able to see. Silenced by name rather than
+      // by turning the whole EMPTY_BUNDLE class off, so a genuinely empty
+      // component route would still say so.
+      onwarn(warning, warn) {
+        if (
+          warning.code === "EMPTY_BUNDLE" &&
+          warning.names?.every((name) => name === "sitemap_._xml")
+        ) {
+          return;
+        }
+        warn(warning);
+      },
+    },
+  },
 });
