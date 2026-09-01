@@ -1,116 +1,75 @@
-# Neatual.com
+# neatual.com
 
-Company website for Neatual – a Polish wallpaper-hanging company working across Poland. Built with **React Router 7** and **Tailwind CSS**.
+Marketing site for Neatual — a Polish wallpaper-hanging company that installs across Poland.
 
-## Tech Stack
+> [!NOTE]
+> **Status: Dormant.** Sits in the archive folder locally but still ships to production from `master`. Revival vs. retirement is TBD — see [docs/audits/2026-08-17-comprehensive-audit.md](docs/audits/2026-08-17-comprehensive-audit.md) (P0 #13).
 
-- **React Router 7** – Full-stack React framework, in framework mode
-- **Tailwind CSS** – Styling
-- **React 19** – UI
+## Surfaces
 
-## Development
+| Locale  | Home  | Gallery       | Contact         |
+| ------- | ----- | ------------- | --------------- |
+| Polish  | `/`   | `/galeria`    | `/kontakt`      |
+| English | `/en` | `/en/gallery` | `/en/contact`   |
+| German  | `/de` | `/de/galerie` | `/de/kontakte`  |
+
+- Live site: production Vercel deployment (see [docs/deploy.md](docs/deploy.md))
+- Studio: <https://neatual.sanity.studio>
+
+## Why this exists
+
+Neatual needs a multilingual company site that survives a CMS outage and stays cheap to run. The site is the whole product — no accounts, no bookings, no dashboards; browsing and contact only.
+
+## What it is not
+
+Not a booking, quoting, or e-commerce platform. Installation only — the client or their designer supplies the wallpaper.
+
+## Quick start
 
 ```bash
 pnpm install
-pnpm start:dev
+pnpm start:dev            # https://neatual.local via portless
 ```
 
-`start:dev` runs behind `portless`, which serves the app at `https://neatual.local` and exposes it on
-the LAN. Use `pnpm start:dev:raw` to skip the proxy and run on `PORT` (default 7777) directly.
+`start:dev:raw` skips the proxy and runs on `PORT` (default 7777). `pnpm reboot` clears caches and reinstalls.
 
-To start from a clean slate:
+Requires **Node >= 22.12** and **pnpm 10.22.0**.
 
-```bash
-pnpm reboot   # cache:clean && install && start:dev
-```
+## Everyday commands
 
-## Build
+| Task                     | Command                  |
+| ------------------------ | ------------------------ |
+| Dev server               | `pnpm start:dev`         |
+| Dev server (no proxy)    | `pnpm start:dev:raw`     |
+| Production build         | `pnpm build`             |
+| Run built server         | `pnpm start`             |
+| Lint / format            | `pnpm lint` / `pnpm format` |
+| Tests                    | `pnpm test`              |
+| Lighthouse budgets       | `pnpm test:performance`  |
+| Check CMS vs. fallback   | `pnpm content:check`     |
+| Sanity Studio (local)    | `pnpm sanity:dev`        |
+| Deploy Studio            | `pnpm sanity:deploy`     |
+| Generate gallery images  | `pnpm images:generate`   |
+| Generate OG card         | `pnpm og:generate`       |
 
-```bash
-pnpm build
-pnpm start
-```
+## Stack
 
-## Content (Sanity)
+- **React Router 7** in framework mode (migrated from Remix 2)
+- **React 19**, **Tailwind CSS**
+- **Sanity 4.x** — field-level i18n (`{ pl, en, de }`), public `production` dataset, dotless document IDs
+- **Vercel** — merge to `master` promotes to production; other branches get preview URLs
+- **Express `server.js`** — used only by `pnpm start`, CI smoke, and Lighthouse; Vercel serves the built app through its own `@vercel/react-router` adapter, so security headers in `app/lib/securityHeaders.js` are applied both there and in `vercel.json`
 
-The site renders from Sanity. The root loader calls `getContent()`
-(`app/lib/content.server.js`), and routes and components read the result through
-`useContent()`.
+Content flows through `app/lib/content.server.js`. When Sanity is unreachable or unconfigured, it falls back to bundled copy in `app/lib/locales.js` / `app/lib/inlineCopy.js` and logs a one-line notice — the site always renders. `pnpm content:check` is what tells CMS output from the fallback.
 
-When Sanity is unconfigured or unreachable — no `SANITY_STUDIO_PROJECT_ID`, a network
-failure, or an incomplete response — `getContent()` falls back to the bundled copy in
-`app/lib/locales.js` and `app/lib/inlineCopy.js` and logs a one-line notice. The site
-always renders; the risk is the quiet one, where a deployment missing its environment
-variables looks correct while every CMS edit appears to do nothing. `pnpm content:check`
-is what tells the two sources apart.
+## Documentation
 
-The project (`kyyf7nu9`) exists and is seeded. To work on it locally:
+- [docs/deploy.md](docs/deploy.md) — Vercel project, env vars, logs
+- [docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md](docs/AUDIT-SEO-PERFORMANCE-ACCESSIBILITY.md)
+- [docs/ICP-AND-SEO-STRATEGY.md](docs/ICP-AND-SEO-STRATEGY.md)
+- [docs/audits/](docs/audits/) — dated audit reports, latest: [2026-08-17-comprehensive-audit.md](docs/audits/2026-08-17-comprehensive-audit.md)
+- [docs/plans/](docs/plans/) — design and product plans
 
-```bash
-cp .env.example .env    # already filled in for the existing project
-pnpm sanity:dev         # Studio at http://localhost:3333
-```
+## License
 
-Re-seeding from `app/lib/locales.js`, should you need it:
-
-```bash
-pnpm seed:sanity --dry-run     # inspect the documents, write nothing
-pnpm seed:sanity:import        # writes, using your `sanity login` session
-pnpm seed:sanity               # same, but via SANITY_WRITE_TOKEN
-```
-
-Both are idempotent — fixed document IDs, `--replace` — so re-running overwrites
-rather than duplicating. That also means re-seeding discards Studio edits.
-
-The `production` dataset is **public**: the site reads it anonymously, with no token in
-the server environment. Document IDs must stay dotless (`page-home`, not `page.home`) —
-Sanity's default public read grant is `_id in path("*")`, which matches only dotless IDs,
-so a dotted ID is invisible to anonymous readers.
-
-The Studio is deployed separately from the site, to `<SANITY_STUDIO_HOST>.sanity.studio`:
-
-```bash
-pnpm sanity:deploy
-```
-
-Editors work in the deployed Studio: **https://neatual.sanity.studio**
-
-Content is modelled with **field-level localization** — one document per page, each
-translatable field holding `{ pl, en, de }`. The locale list lives in `app/lib/seo.js`
-and is shared with the sitemap and hreflang tags, so adding a language is one edit.
-
-Three document types: `page` (×3), `product` (×4) and the `siteSettings` singleton.
-Product photos stay in `public/gallery/`; the CMS holds the folder name and photo count,
-and the responsive variants are generated by `scripts/generate-gallery-images.mjs`.
-
-Labels that take a value — "Pattern no. {n}", "{name} — photo {n}" — are stored as
-templates with `{placeholder}` markers and expanded by `fillTemplate()`. They were
-functions before, which no CMS field can express.
-
-Sanity is on the `4.x` line. That used to be described as a pin forced by React 18 —
-"5.x and later require React 19; this app is on React 18" — which had it backwards:
-`sanity@4.22.0` peers `react: "^18||^19"`, so React 18 was never what held it here. The
-app moved to React 19 on 28 August 2026 and Sanity 4 did not have to move with it. It
-stays on 4.x because nothing needs 5.x, not because anything blocks it.
-
-## Routes
-
-- **Polish:** `/`, `/galeria`, `/kontakt`
-- **English:** `/en`, `/en/gallery`, `/en/contact`
-- **German:** `/de`, `/de/galerie`, `/de/kontakte`
-
-## Deployment
-
-**Vercel**, through the Git integration — see [docs/deploy.md](docs/deploy.md)
-for the project, the environment variables and where the logs are.
-
-There is no deploy command. A merge to `master` promotes to production; every
-other branch gets a preview URL. `./deploy.sh` reproduces the CI checks
-locally and deliberately pushes nowhere.
-
-One thing that is not obvious: **`server.js` does not run in production.**
-Vercel's `react-router` preset serves the built app through its own adapter, so the
-Express server is the one used by `pnpm start`, the CI smoke job and the
-Lighthouse run only. Security headers therefore live in
-`app/lib/securityHeaders.js` and are applied twice — by `server.js` for local
-and CI, and by `vercel.json` for the live site.
+Private. All rights reserved.
