@@ -99,17 +99,16 @@ No API routes (Sanity-driven marketing site). Server-side data fetching happens 
 
 ### Environment
 
-Copy `.env.example` to `.env` — the Sanity project already exists and the file is checked in verbatim.
+Copy `.env.example` to `.env` — the Sanity project already exists and the file is checked in verbatim. Vercel serves production; merges to `master` promote, other branches get preview URLs. Deployment details in `docs/deploy.md`.
 
-| Variable | Purpose |
-| --- | --- |
-| `SANITY_STUDIO_PROJECT_ID` | Sanity project id (`kyyf7nu9`) |
-| `SANITY_STUDIO_DATASET` | Sanity dataset (`production`) |
-| `SANITY_STUDIO_API_VERSION` | Pinned Sanity API date so responses cannot silently change |
-| `SANITY_STUDIO_HOST` | Studio subdomain for `pnpm sanity:deploy` (`neatual`) |
-| `SANITY_WRITE_TOKEN` | Optional; only needed to run `pnpm seed:sanity` outside a `sanity login` session. Not set in CI. |
+- Sanity
+  - `SANITY_STUDIO_PROJECT_ID` — Sanity project id (`kyyf7nu9`)
+  - `SANITY_STUDIO_DATASET` — Sanity dataset (`production`)
+  - `SANITY_STUDIO_API_VERSION` — Pinned Sanity API date so responses cannot silently change
+  - `SANITY_STUDIO_HOST` — Studio subdomain for `pnpm sanity:deploy` (`neatual`)
 
-Vercel serves production; merges to `master` promote, other branches get preview URLs. Deployment details in `docs/deploy.md`.
+- Write token
+  - `SANITY_WRITE_TOKEN` — Optional; only needed to run `pnpm seed:sanity` outside a `sanity login` session. Not set in CI.
 
 ---
 
@@ -122,9 +121,13 @@ pnpm start:dev            # https://neatual.local via portless
 
 `start:dev:raw` skips the proxy and runs on `PORT` (default 7777). `pnpm reboot` clears caches and reinstalls. Requires **Node >= 22.12** and **pnpm 10.22.0**.
 
+---
+
 ## Status
 
 Dormant. In the local `_ARCHIVE/` folder but still deployed. Revive-vs-retire decision pending — see `docs/audits/2026-08-17-comprehensive-audit.md` P0 #13.
+
+---
 
 ## License
 
