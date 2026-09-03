@@ -15,6 +15,9 @@ Trilingual (pl / en / de) marketing site for Neatual, a Polish wallpaper-hanging
    - [API](#api)
    - [Scripts](#scripts)
    - [Environment](#environment)
+3. [Quick start](#quick-start)
+4. [Status](#status)
+5. [License](#license)
 
 ---
 
