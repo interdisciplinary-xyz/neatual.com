@@ -21,13 +21,13 @@ Trilingual (pl / en / de) marketing site for Neatual, a Polish wallpaper-hanging
 ## Stack
 
 | App | Tests | Tools |
-| --- | --- | --- |
-| React Router 7 (framework mode) | Vitest | pnpm 10.22.0 |
-| React 19 | @testing-library/react | Node >= 22.12 |
-| Tailwind CSS 3 | vitest-axe | ESLint 8 + Prettier |
-| Sanity 4.x (field-level i18n) | Lighthouse CI | Vite 5 |
-| Express `server.js` | jsdom | Vercel (`@vercel/react-router`) |
-| @portabletext/react | — | sharp, styled-components |
+| --- | ----- | ----- |
+| [React Router](https://reactrouter.com/) | [Vitest](https://vitest.dev/) | [pnpm](https://pnpm.io/) |
+| [React](https://react.dev/) | [Testing Library](https://testing-library.com/) | [ESLint](https://eslint.org/) |
+| [Tailwind CSS](https://tailwindcss.com/) | [vitest-axe](https://github.com/chaance/vitest-axe) | [Prettier](https://prettier.io/) |
+| [Sanity](https://www.sanity.io/) | [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) | [Vite](https://vitejs.dev/) |
+|  | [jsdom](https://github.com/jsdom/jsdom) | [sharp](https://sharp.pixelplumbing.com/) |
+|  |  | [styled-components](https://styled-components.com/) |
 
 ---
 
