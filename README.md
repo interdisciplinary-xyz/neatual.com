@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/interdisciplinary-xyz/neatual.com/actions/workflows/ci.yml/badge.svg)](https://github.com/interdisciplinary-xyz/neatual.com/actions/workflows/ci.yml)
 
+![neatual](/public/logo.svg)
+
 Trilingual (pl / en / de) marketing site for Neatual, a Polish wallpaper-hanging company that installs across Poland.
 
 ---
