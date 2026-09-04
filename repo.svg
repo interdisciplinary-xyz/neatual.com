@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 100" role="img" aria-label="neatual.com">
+  <title>neatual.com</title>
+  <!--
+    README brand lockup — stylized 'N' mark (three thin rounded-top bars
+    beside one wider, taller dome) + wordmark.
+    Adapts to viewer's light/dark theme via prefers-color-scheme.
+  -->
+  <style>
+    .fg { fill: #0f172a; }
+    @media (prefers-color-scheme: dark) { .fg { fill: #f8fafc; } }
+  </style>
+  <g transform="translate(20, 15)">
+    <path d="M 0 70 L 0 19 A 4 4 0 0 1 8 19 L 8 70 Z" class="fg"/>
+    <path d="M 11 70 L 11 19 A 4 4 0 0 1 19 19 L 19 70 Z" class="fg"/>
+    <path d="M 22 70 L 22 19 A 4 4 0 0 1 30 19 L 30 70 Z" class="fg"/>
+    <path d="M 40 70 L 40 13 A 13 13 0 0 1 66 13 L 66 70 Z" class="fg"/>
+  </g>
+  <text x="115" y="75" class="fg"
+        font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="62" font-weight="500" letter-spacing="-0.02em">neatual.com</text>
+</svg>
