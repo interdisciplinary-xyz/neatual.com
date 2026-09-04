@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 160" role="img" aria-label="neatual">
+  <title>neatual</title>
+  <!-- Placeholder wordmark — replace with a real brand asset when available. -->
+  <style>
+    text { fill: #111827; }
+    @media (prefers-color-scheme: dark) { text { fill: #f9fafb; } }
+  </style>
+  <text x="400" y="115" text-anchor="middle"
+        font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"
+        font-size="96" font-weight="700" letter-spacing="-0.02em">neatual</text>
+</svg>

@@ -1,116 +1,140 @@
-# Neatual.com
+# neatual.com
 
-Company website for Neatual – a Polish wallpaper-hanging company working across Poland. Built with **React Router 7** and **Tailwind CSS**.
+[![CI](https://github.com/interdisciplinary-xyz/neatual.com/actions/workflows/ci.yml/badge.svg)](https://github.com/interdisciplinary-xyz/neatual.com/actions/workflows/ci.yml)
 
-## Tech Stack
+<p align="center">
+  <img src="/repo.svg" alt="neatual.com" width="320">
+</p>
 
-- **React Router 7** – Full-stack React framework, in framework mode
-- **Tailwind CSS** – Styling
-- **React 19** – UI
+Trilingual (pl / en / de) marketing site for Neatual, a Polish wallpaper-hanging company that installs across Poland.
 
-## Development
+---
+
+## Table of content
+
+1. [Stack](#stack)
+2. [Architecture](#architecture)
+   - [Domains](#domains)
+   - [Components](#components)
+   - [API](#api)
+   - [Scripts](#scripts)
+   - [Environment](#environment)
+3. [Quick start](#quick-start)
+4. [Status](#status)
+5. [License](#license)
+
+---
+
+## Stack
+
+| App                                      | Tests                                                          | Tools                                               |
+| ---------------------------------------- | -------------------------------------------------------------- | --------------------------------------------------- |
+| [React Router](https://reactrouter.com/) | [Vitest](https://vitest.dev/)                                  | [pnpm](https://pnpm.io/)                            |
+| [React](https://react.dev/)              | [Testing Library](https://testing-library.com/)                | [ESLint](https://eslint.org/)                       |
+| [Tailwind CSS](https://tailwindcss.com/) | [vitest-axe](https://github.com/chaance/vitest-axe)            | [Prettier](https://prettier.io/)                    |
+| [Sanity](https://www.sanity.io/)         | [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci) | [Vite](https://vitejs.dev/)                         |
+|                                          | [jsdom](https://github.com/jsdom/jsdom)                        | [sharp](https://sharp.pixelplumbing.com/)           |
+|                                          |                                                                | [styled-components](https://styled-components.com/) |
+
+---
+
+## Architecture
+
+Sanity-backed marketing site with a hard fallback. Content flows through `app/lib/content.server.js`; when Sanity is unreachable or unconfigured it serves bundled copy from `app/lib/locales.js` / `app/lib/inlineCopy.js` and logs a one-line notice, so the site always renders. Vercel serves the built app through `@vercel/react-router`; the Express `server.js` is used only by `pnpm start`, CI smoke, and Lighthouse. Security headers in `app/lib/securityHeaders.js` are applied both there and in `vercel.json`.
+
+### Domains:
+
+Flat route tree under `app/routes/` — file-based routing, one file per locale × surface. No domain folders.
+
+| Domain                   | Purpose                                                   |
+| ------------------------ | --------------------------------------------------------- |
+| `app/routes/_index.jsx`  | Home (`/` PL, `/en`, `/de`)                               |
+| `app/routes/galeria.jsx` | Gallery (`/galeria` PL, `/en/gallery`, `/de/galerie`)     |
+| `app/routes/uslugi.jsx`  | Services (`/uslugi` PL, `/en/services`, `/de/leistungen`) |
+| `app/routes/cennik.jsx`  | Pricing (`/cennik` PL, `/en/pricing`, `/de/preise`)       |
+| `app/routes/kontakt.jsx` | Contact (`/kontakt` PL, `/en/contact`, `/de/kontakte`)    |
+
+Studio lives separately at <https://neatual.sanity.studio>.
+
+---
+
+### Components
+
+Co-located in `app/components/` as flat `.jsx` files (no per-component folders). Test siblings use `Name.spec.jsx`; hooks use `useX.js` + `useX.spec.jsx`.
+
+- Layout: `PageLayout.jsx`, `Header.jsx`, `Footer.jsx`
+- Media: `DisplayMedia.jsx`, `ProductImage.jsx`, `SplashScreen.jsx`
+- Content: `RichText.jsx` (Portable Text renderer), `Button.jsx`
+- Modals: `ModalSingleProduct.jsx`, `ModalWithDetails.jsx`, `useModalBehaviour.js`
+- Icons: `app/components/icons/`
+
+---
+
+### API
+
+No API routes (Sanity-driven marketing site). Server-side data fetching happens in route loaders via `app/lib/content.server.js`; the only server-generated response is `app/routes/sitemap[.]xml.js`.
+
+---
+
+### Scripts
+
+| Name                             | Description                                                            |
+| -------------------------------- | ---------------------------------------------------------------------- |
+| `dev` / `start:dev`              | Dev server via portless (`https://neatual.local`, `--lan`)             |
+| `start:dev:raw`                  | Dev server without the portless proxy (uses `PORT`, default 7777)      |
+| `build`                          | Production build (`react-router build`)                                |
+| `start`                          | Run the built server (`server.js`, `NODE_ENV=production`)              |
+| `lint` / `lint:fix`              | ESLint over `app/`                                                     |
+| `format` / `format:check`        | Prettier write / check                                                 |
+| `test` / `test:watch`            | Vitest (single run / watch)                                            |
+| `test:performance`               | Lighthouse CI (`lhci autorun`)                                         |
+| `audit:check`                    | Verify against the audit baseline (`scripts/check-audit-baseline.mjs`) |
+| `content:check`                  | Compare live Sanity output against the bundled fallback                |
+| `content:pull` / `content:push`  | Sync content between Sanity and the repo fallback                      |
+| `sanity:dev`                     | Run Sanity Studio locally                                              |
+| `sanity:build` / `sanity:deploy` | Build / deploy Sanity Studio                                           |
+| `seed:sanity`                    | Seed the Sanity dataset from `scripts/seed-sanity.mjs`                 |
+| `seed:sanity:import`             | Emit NDJSON and `sanity dataset import --replace` into `production`    |
+| `images:generate`                | Regenerate gallery images (`scripts/generate-gallery-images.mjs`)      |
+| `og:generate`                    | Regenerate the Open Graph card (`scripts/generate-og-image.mjs`)       |
+| `fonts:fetch`                    | Fetch self-hosted fonts (`scripts/fetch-fonts.mjs`)                    |
+| `cache:clean`                    | Delete `node_modules`, `build`, `dist`, `.cache`, `.sanity`            |
+| `reboot`                         | `cache:clean` + `pnpm install` + `start:dev`                           |
+
+---
+
+### Environment
+
+Copy `.env.example` to `.env` — the Sanity project already exists and the file is checked in verbatim. Vercel serves production; merges to `master` promote, other branches get preview URLs. Deployment details in `docs/deploy.md`.
+
+- Sanity
+  - `SANITY_STUDIO_PROJECT_ID` — Sanity project id (`kyyf7nu9`)
+  - `SANITY_STUDIO_DATASET` — Sanity dataset (`production`)
+  - `SANITY_STUDIO_API_VERSION` — Pinned Sanity API date so responses cannot silently change
+  - `SANITY_STUDIO_HOST` — Studio subdomain for `pnpm sanity:deploy` (`neatual`)
+
+- Write token
+  - `SANITY_WRITE_TOKEN` — Optional; only needed to run `pnpm seed:sanity` outside a `sanity login` session. Not set in CI.
+
+---
+
+## Quick start
 
 ```bash
 pnpm install
-pnpm start:dev
+pnpm start:dev            # https://neatual.local via portless
 ```
 
-`start:dev` runs behind `portless`, which serves the app at `https://neatual.local` and exposes it on
-the LAN. Use `pnpm start:dev:raw` to skip the proxy and run on `PORT` (default 7777) directly.
+`start:dev:raw` skips the proxy and runs on `PORT` (default 7777). `pnpm reboot` clears caches and reinstalls. Requires **Node >= 22.12** and **pnpm 10.22.0**.
 
-To start from a clean slate:
+---
 
-```bash
-pnpm reboot   # cache:clean && install && start:dev
-```
+## Status
 
-## Build
+Dormant. In the local `_ARCHIVE/` folder but still deployed. Revive-vs-retire decision pending — see `docs/audits/2026-08-17-comprehensive-audit.md` P0 #13.
 
-```bash
-pnpm build
-pnpm start
-```
+---
 
-## Content (Sanity)
+## License
 
-The site renders from Sanity. The root loader calls `getContent()`
-(`app/lib/content.server.js`), and routes and components read the result through
-`useContent()`.
-
-When Sanity is unconfigured or unreachable — no `SANITY_STUDIO_PROJECT_ID`, a network
-failure, or an incomplete response — `getContent()` falls back to the bundled copy in
-`app/lib/locales.js` and `app/lib/inlineCopy.js` and logs a one-line notice. The site
-always renders; the risk is the quiet one, where a deployment missing its environment
-variables looks correct while every CMS edit appears to do nothing. `pnpm content:check`
-is what tells the two sources apart.
-
-The project (`kyyf7nu9`) exists and is seeded. To work on it locally:
-
-```bash
-cp .env.example .env    # already filled in for the existing project
-pnpm sanity:dev         # Studio at http://localhost:3333
-```
-
-Re-seeding from `app/lib/locales.js`, should you need it:
-
-```bash
-pnpm seed:sanity --dry-run     # inspect the documents, write nothing
-pnpm seed:sanity:import        # writes, using your `sanity login` session
-pnpm seed:sanity               # same, but via SANITY_WRITE_TOKEN
-```
-
-Both are idempotent — fixed document IDs, `--replace` — so re-running overwrites
-rather than duplicating. That also means re-seeding discards Studio edits.
-
-The `production` dataset is **public**: the site reads it anonymously, with no token in
-the server environment. Document IDs must stay dotless (`page-home`, not `page.home`) —
-Sanity's default public read grant is `_id in path("*")`, which matches only dotless IDs,
-so a dotted ID is invisible to anonymous readers.
-
-The Studio is deployed separately from the site, to `<SANITY_STUDIO_HOST>.sanity.studio`:
-
-```bash
-pnpm sanity:deploy
-```
-
-Editors work in the deployed Studio: **https://neatual.sanity.studio**
-
-Content is modelled with **field-level localization** — one document per page, each
-translatable field holding `{ pl, en, de }`. The locale list lives in `app/lib/seo.js`
-and is shared with the sitemap and hreflang tags, so adding a language is one edit.
-
-Three document types: `page` (×3), `product` (×4) and the `siteSettings` singleton.
-Product photos stay in `public/gallery/`; the CMS holds the folder name and photo count,
-and the responsive variants are generated by `scripts/generate-gallery-images.mjs`.
-
-Labels that take a value — "Pattern no. {n}", "{name} — photo {n}" — are stored as
-templates with `{placeholder}` markers and expanded by `fillTemplate()`. They were
-functions before, which no CMS field can express.
-
-Sanity is on the `4.x` line. That used to be described as a pin forced by React 18 —
-"5.x and later require React 19; this app is on React 18" — which had it backwards:
-`sanity@4.22.0` peers `react: "^18||^19"`, so React 18 was never what held it here. The
-app moved to React 19 on 28 August 2026 and Sanity 4 did not have to move with it. It
-stays on 4.x because nothing needs 5.x, not because anything blocks it.
-
-## Routes
-
-- **Polish:** `/`, `/galeria`, `/kontakt`
-- **English:** `/en`, `/en/gallery`, `/en/contact`
-- **German:** `/de`, `/de/galerie`, `/de/kontakte`
-
-## Deployment
-
-**Vercel**, through the Git integration — see [docs/deploy.md](docs/deploy.md)
-for the project, the environment variables and where the logs are.
-
-There is no deploy command. A merge to `master` promotes to production; every
-other branch gets a preview URL. `./deploy.sh` reproduces the CI checks
-locally and deliberately pushes nowhere.
-
-One thing that is not obvious: **`server.js` does not run in production.**
-Vercel's `react-router` preset serves the built app through its own adapter, so the
-Express server is the one used by `pnpm start`, the CI smoke job and the
-Lighthouse run only. Security headers therefore live in
-`app/lib/securityHeaders.js` and are applied twice — by `server.js` for local
-and CI, and by `vercel.json` for the live site.
+Private. All rights reserved. © Neatual.
