@@ -46,11 +46,13 @@ Sanity-backed marketing site with a hard fallback. Content flows through `app/li
 
 Flat route tree under `app/routes/` — file-based routing, one file per locale × surface. No domain folders.
 
-- `app/routes/_index.jsx` — Home (`/` PL, `/en`, `/de`)
-- `app/routes/galeria.jsx` — Gallery (`/galeria` PL, `/en/gallery`, `/de/galerie`)
-- `app/routes/uslugi.jsx` — Services (`/uslugi` PL, `/en/services`, `/de/leistungen`)
-- `app/routes/cennik.jsx` — Pricing (`/cennik` PL, `/en/pricing`, `/de/preise`)
-- `app/routes/kontakt.jsx` — Contact (`/kontakt` PL, `/en/contact`, `/de/kontakte`)
+| Domain | Purpose |
+| --- | --- |
+| `app/routes/_index.jsx` | Home (`/` PL, `/en`, `/de`) |
+| `app/routes/galeria.jsx` | Gallery (`/galeria` PL, `/en/gallery`, `/de/galerie`) |
+| `app/routes/uslugi.jsx` | Services (`/uslugi` PL, `/en/services`, `/de/leistungen`) |
+| `app/routes/cennik.jsx` | Pricing (`/cennik` PL, `/en/pricing`, `/de/preise`) |
+| `app/routes/kontakt.jsx` | Contact (`/kontakt` PL, `/en/contact`, `/de/kontakte`) |
 
 Studio lives separately at <https://neatual.sanity.studio>.
 
