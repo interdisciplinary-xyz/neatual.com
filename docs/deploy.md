@@ -53,6 +53,14 @@ sends. The CI smoke job asserts all of them and was green, because it boots
 in `app/lib/securityHeaders.js`; `server.js` imports them and
 `test/security-headers.spec.js` fails if `vercel.json` drifts from them.
 
+The `Content-Security-Policy` is the exception, and is in neither of those two
+places. Since v0.8.0 it carries a per-request nonce, which a static JSON table
+cannot produce, so `app/entry.server.jsx` sets it on the response it renders —
+one mechanism rather than two, and no drift to guard against. The practical
+consequence is that the CSP now covers documents only: assets served straight
+from Vercel's CDN no longer carry one, which is what `X-Frame-Options: DENY` in
+`vercel.json` is still there to cover.
+
 Response compression is Vercel's (`content-encoding: br`), not the
 `compression()` middleware's.
 

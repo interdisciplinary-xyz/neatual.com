@@ -32,6 +32,7 @@ import {
 import { RATE_NUMBERS } from "./lib/inlineCopy";
 import { getContent } from "./lib/content.server";
 import { useContent } from "./lib/useContent";
+import { useNonce } from "./lib/nonce";
 // Imported before Tailwind so Vite emits both into one stylesheet rather than
 // two render-blocking requests. Generated — see scripts/fetch-fonts.mjs.
 import "./fonts.css";
@@ -414,6 +415,10 @@ function NavigationProgress() {
 
 export default function App() {
   const { pathname, content } = useLoaderData() ?? { pathname: "/" };
+  // Empty string after hydration — see app/lib/nonce.js. A nonce authorises an
+  // element when the parser sees it, so only the SSR pass has anything to say;
+  // by the client render the inline scripts below have already run.
+  const nonce = useNonce();
   const locale = getLocaleFromPath(pathname);
   const htmlLang = locale === "pl" ? "pl" : locale === "en" ? "en" : "de";
   const { canonical, entry } = getPageMeta(pathname, content);
@@ -435,6 +440,8 @@ export default function App() {
         ))}
         <script
           type="application/ld+json"
+          nonce={nonce}
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: JSON.stringify(structuredData(pathname, content)),
           }}
@@ -442,9 +449,10 @@ export default function App() {
         {/*
           Blocking, and in <head> on purpose: it has to run before the body
           paints, or a visitor who has already seen the splash this session gets
-          a frame of it before the attribute lands. ~200 bytes inline, and the
-          CSP at server.js:25 already allows 'unsafe-inline' for scripts, so
-          this needs no nonce plumbing.
+          a frame of it before the attribute lands. ~200 bytes inline, and it
+          carries the per-request nonce — the CSP stopped allowing
+          'unsafe-inline' for scripts in v0.8.0, so an inline script without one
+          is now simply not executed.
 
           The flag is written on the way *in* rather than on unload, because the
           case being suppressed is exactly a hard navigation to another page.
@@ -463,6 +471,8 @@ export default function App() {
         */}
         {isProduction && (
           <script
+            nonce={nonce}
+            suppressHydrationWarning
             dangerouslySetInnerHTML={{
               __html:
                 "try{if(location.search.indexOf('splash')<0){if(sessionStorage.getItem('neatual:splash')){document.documentElement.dataset.splash='seen'}else{sessionStorage.setItem('neatual:splash','1')}}}catch(e){}",
@@ -510,6 +520,10 @@ export default function App() {
         <ProgressProvider
           color="#000000"
           height="3px"
+          // This provider renders its stylesheet as an inline <style> element,
+          // which `style-src 'self'` alone would drop — taking the navigation
+          // bar's styling with it. It takes a nonce for exactly this reason.
+          nonce={nonce}
           options={{
             showSpinner: false,
             template: '<div class="bar" aria-hidden="true"></div>',
