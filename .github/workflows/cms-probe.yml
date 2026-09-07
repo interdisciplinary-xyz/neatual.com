@@ -58,13 +58,20 @@ jobs:
 
       # Runs the same predicate getContent() uses to decide whether to fall
       # back, imported rather than restated — see scripts/probe-cms.mjs.
+      #
+      # `tee` rather than plain output: the alert issue quotes this verbatim
+      # below. Issue #26 said only "the probe failed, go read the run" because
+      # the body was a static template — the probe knew which eight documents
+      # were missing and had nowhere to say it. `pipefail` so the exit status
+      # is the probe's, not tee's.
       - name: Can Sanity answer at all?
         id: probe
         run: |
+          set -o pipefail
           if [ "${{ inputs.simulate_failure }}" = "true" ]; then
-            node scripts/probe-cms.mjs --simulate-failure
+            node scripts/probe-cms.mjs --simulate-failure 2>&1 | tee probe.log
           else
-            node scripts/probe-cms.mjs
+            node scripts/probe-cms.mjs 2>&1 | tee probe.log
           fi
 
       # A second, quieter failure the first step cannot see.
@@ -86,7 +93,9 @@ jobs:
       # that gets removed.
       - name: Is the dataset current?
         if: ${{ !inputs.simulate_failure }}
-        run: pnpm content:check
+        run: |
+          set -o pipefail
+          pnpm content:check 2>&1 | tee content-check.log
 
       # A failed scheduled run emails whoever owns the repo, which satisfies
       # "a human sees it within a day" on its own. The issue is belt and braces:
@@ -101,6 +110,21 @@ jobs:
           set -e
           title="CMS probe failing — the site is serving bundled copy"
           existing=$(gh issue list --state open --label cms-probe --json number --jq '.[0].number')
+
+          # Quoted verbatim, and capped: the probe names every missing document,
+          # and content:check can list hundreds of differing fields. head keeps
+          # a 147-field drift from burying the part that says what to run.
+          # A step that never ran leaves no file, which is worth saying out loud
+          # — "the earlier step failed first" is itself a diagnosis.
+          section() {
+            if [ -f "$1" ]; then
+              printf '\n<details><summary>%s</summary>\n\n```\n%s\n```\n</details>\n' \
+                "$2" "$(head -c 8000 "$1")"
+            else
+              printf '\n_%s did not run — an earlier step failed first._\n' "$2"
+            fi
+          }
+
           body=$(printf '%s\n' \
             "The scheduled CMS probe failed. The site is **up** either way — that is" \
             "what makes both of these hard to notice. Check the run to see which step" \
@@ -122,6 +146,9 @@ jobs:
             "" \
             "    node --env-file-if-exists=.env scripts/probe-cms.mjs" \
             "    pnpm content:check")
+          body="$body$(section probe.log 'Probe output')"
+          body="$body$(section content-check.log 'Dataset drift (pnpm content:check)')"
+
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body "$body"
           else
