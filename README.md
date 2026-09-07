@@ -40,7 +40,7 @@ Trilingual (pl / en / de) marketing site for Neatual, a Polish wallpaper-hanging
 
 ## Architecture
 
-Sanity-backed marketing site with a hard fallback. Content flows through `app/lib/content.server.js`; when Sanity is unreachable or unconfigured it serves bundled copy from `app/lib/locales.js` / `app/lib/inlineCopy.js` and logs a one-line notice, so the site always renders. Vercel serves the built app through `@vercel/react-router`; the Express `server.js` is used only by `pnpm start`, CI smoke, and Lighthouse. Security headers in `app/lib/securityHeaders.js` are applied both there and in `vercel.json`.
+Sanity-backed marketing site with a hard fallback. Content flows through `app/lib/content.server.js`; when Sanity is unreachable or unconfigured it serves bundled copy from `app/lib/locales.js` / `app/lib/inlineCopy.js` and logs a one-line notice, so the site always renders. Vercel serves the built app through `@vercel/react-router`; the Express `server.js` is used only by `pnpm start`, CI smoke, and Lighthouse. Security headers in `app/lib/securityHeaders.js` are applied both there and in `vercel.json`; the CSP is set separately by `app/entry.server.jsx`, which is the only place a per-request nonce can be minted.
 
 ### Domains:
 

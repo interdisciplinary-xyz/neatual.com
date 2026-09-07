@@ -2,7 +2,6 @@ import { createRequestHandler } from "@react-router/express";
 
 import { resolveServerBuild } from "./scripts/resolve-server-build.mjs";
 import {
-  CONTENT_SECURITY_POLICY,
   STRICT_TRANSPORT_SECURITY,
   UNCONDITIONAL_HEADERS,
 } from "./app/lib/securityHeaders.js";
@@ -24,15 +23,16 @@ const viteDevServer = isProduction
 // production: Vercel serves the built Remix app through its own adapter and
 // never loads this file, so the same headers are restated in vercel.json. See
 // the note at the top of app/lib/securityHeaders.js.
+//
+// No Content-Security-Policy here any more. It carries a per-request nonce and
+// is set by app/entry.server.jsx, which runs for every document response
+// through both this server and Vercel's adapter. Setting it here as well would
+// put a second, nonceless CSP header on the same response — and two CSP
+// headers are enforced as an intersection, so the strict one would be ANDed
+// with a stale one nobody was maintaining.
 function securityHeaders(req, res, next) {
   for (const [name, value] of Object.entries(UNCONDITIONAL_HEADERS)) {
     res.setHeader(name, value);
-  }
-
-  // Production-only: Vite's dev server needs eval and an HMR websocket, both
-  // of which this policy blocks.
-  if (isProduction) {
-    res.setHeader("Content-Security-Policy", CONTENT_SECURITY_POLICY);
   }
 
   // HSTS only over a genuinely secure request. Chrome treats localhost as a
